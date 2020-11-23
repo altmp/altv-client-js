@@ -23,6 +23,7 @@ static void ConstructorAreaBlip(const v8::FunctionCallbackInfo<v8::Value>& info)
 	alt::IResource* res = V8ResourceImpl::GetResource(isolate->GetEnteredContext());
     alt::Ref<alt::IBlip> blip = res->CreateBlip({ x, y, z }, width, height);
 	V8_BIND_BASE_OBJECT(blip);
+	V8_MARK_ENTITY_FROM_JS(blip);
 }
 
 static void ConstructorRadiusBlip(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -38,6 +39,7 @@ static void ConstructorRadiusBlip(const v8::FunctionCallbackInfo<v8::Value>& inf
 	alt::IResource* res = V8ResourceImpl::GetResource(isolate->GetEnteredContext());
     alt::Ref<alt::IBlip> blip = res->CreateBlip({ x, y, z }, radius);
 	V8_BIND_BASE_OBJECT(blip);
+	V8_MARK_ENTITY_FROM_JS(blip);
 }
 
 static void ConstructorPointBlip(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -52,6 +54,7 @@ static void ConstructorPointBlip(const v8::FunctionCallbackInfo<v8::Value>& info
 	alt::IResource* res = V8ResourceImpl::GetResource(isolate->GetEnteredContext());
     alt::Ref<alt::IBlip> blip = res->CreateBlip(alt::IBlip::BlipType::DESTINATION, { x, y, z });
 	V8_BIND_BASE_OBJECT(blip);
+	V8_MARK_ENTITY_FROM_JS(blip);
 }
 
 static void ConstructorPedBlip(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -64,6 +67,7 @@ static void ConstructorPedBlip(const v8::FunctionCallbackInfo<v8::Value>& info)
 	alt::IResource* res = V8ResourceImpl::GetResource(isolate->GetEnteredContext());
     alt::Ref<alt::IBlip> blip = res->CreateBlip(alt::IBlip::BlipType::PED, pedId);
 	V8_BIND_BASE_OBJECT(blip);
+	V8_MARK_ENTITY_FROM_JS(blip);
 }
 
 static void ConstructorVehicleBlip(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -76,8 +80,8 @@ static void ConstructorVehicleBlip(const v8::FunctionCallbackInfo<v8::Value>& in
 	alt::IResource* res = V8ResourceImpl::GetResource(isolate->GetEnteredContext());
     alt::Ref<alt::IBlip> blip = res->CreateBlip(alt::IBlip::BlipType::VEHICLE, vehicleId);
 
-
 	V8_BIND_BASE_OBJECT(blip);
+	V8_MARK_ENTITY_FROM_JS(blip);
 }
 
 static void SizeSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& info)

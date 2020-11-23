@@ -156,6 +156,16 @@ static void Constructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 	}
 
 	V8_BIND_BASE_OBJECT(view);
+
+	// Mark the webview as created from JS, so the reference gets removed on destroy
+	V8_MARK_ENTITY_FROM_JS(view);
+}
+
+static void Delete(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+	V8_GET_ISOLATE_CONTEXT_RESOURCE();
+	V8_GET_THIS_BASE_OBJECT(webview, alt::IWebView);
+	V8_CHECK(resource->DeleteEntity(webview), "Could not delete webview");
 }
 
 extern V8Class v8BaseObject;
@@ -170,4 +180,5 @@ extern V8Class v8WebView("WebView", v8BaseObject, &Constructor,	[](v8::Local<v8:
 	V8::SetMethod(isolate, tpl, "emit", &Emit);
 	V8::SetMethod(isolate, tpl, "focus", &Focus);
 	V8::SetMethod(isolate, tpl, "unfocus", &Unfocus);
+	V8::SetMethod(isolate, tpl, "destroy", &Delete);
 });
