@@ -64,16 +64,13 @@ bool CV8ResourceImpl::Start()
 
 	V8ResourceImpl::Start();
 
-	v8::Context::Scope context_scope(ctx);
-
 	//Log::Debug(V8ResourceImpl::GetResource(ctx));
 	//Log::Debug(V8ResourceImpl::GetResource(isolate->GetEnteredContext()));
 
-	/*runtime->GetInspector()->contextCreated({
-		ctx,
-		1,
-		v8_inspector::StringView{ (uint8_t*)name.CStr(), name.GetSize() }
-	});*/
+	// Start V8 inspector
+	inspector = new CV8InspectorClient(context.Get(isolate), alt::ICore::Instance().IsDebug());
+
+	v8::Context::Scope context_scope(ctx);
 
 	std::string path = resource->GetMain().ToString();
 

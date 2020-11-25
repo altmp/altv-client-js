@@ -7,6 +7,8 @@
 
 #include "../helpers/Log.h"
 
+#include "../CV8Resource.h";
+
 using namespace alt;
 
 static void OnServer(const v8::FunctionCallbackInfo<v8::Value> &info)
@@ -658,6 +660,18 @@ static void TakeScreenshotGameOnly(const v8::FunctionCallbackInfo<v8::Value> &in
 	V8_RETURN(persistent.Get(isolate)->GetPromise());
 }
 
+static void SetInspectorCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+	V8_GET_ISOLATE_CONTEXT();
+	V8_CHECK_ARGS_LEN(1);
+	V8_ARG_TO_FUNCTION(1, callback);
+
+	auto res = static_cast<CV8ResourceImpl*>(CV8ResourceImpl::Get(ctx));
+	res->GetInspector()->SetCallback(callback, isolate);
+
+	V8_RETURN(v8::Undefined(isolate));
+}
+
 extern V8Class v8Vector3,
 	v8RGBA,
 	v8BaseObject,
@@ -774,4 +788,5 @@ extern V8Module altModule(
 
 		V8Helpers::RegisterFunc(exports, "takeScreenshot", &TakeScreenshot);
 		V8Helpers::RegisterFunc(exports, "takeScreenshotGameOnly", &TakeScreenshotGameOnly);
+		V8Helpers::RegisterFunc(exports, "setInspectorCallback", &SetInspectorCallback);
 	});

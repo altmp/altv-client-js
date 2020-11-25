@@ -9,6 +9,8 @@
 
 #include "helpers/Log.h"
 
+#include "inspector/CV8InspectorClient.h";
+
 class CV8ScriptRuntime;
 
 class CV8ResourceImpl : public V8ResourceImpl
@@ -90,10 +92,16 @@ public:
 	v8::MaybeLocal<v8::Module> ResolveFile(const std::string &name, v8::Local<v8::Module> referrer);
 	v8::MaybeLocal<v8::Module> ResolveModule(const std::string &name, v8::Local<v8::Module> referrer);
 
+	CV8InspectorClient* GetInspector()
+	{ 
+		return inspector; 
+	}
+
 private:
 	using WebViewEvents = std::unordered_multimap<std::string, V8::EventCallback>;
 
 	CV8ScriptRuntime *runtime;
+	CV8InspectorClient *inspector;
 
 	std::unordered_map<std::string, v8::UniquePersistent<v8::Value>> requires;
 	std::unordered_map<std::string, v8::UniquePersistent<v8::Module>> modules;

@@ -7,6 +7,7 @@
 #include "cpp-sdk/IScriptRuntime.h"
 
 #include "CV8Resource.h"
+#include "inspector/CV8InspectorClient.h";
 
 class CV8ScriptRuntime : public alt::IScriptRuntime
 {
@@ -15,17 +16,11 @@ class CV8ScriptRuntime : public alt::IScriptRuntime
 	std::unique_ptr<v8::Platform> platform;
 	v8::Isolate::CreateParams create_params;
 	v8::Isolate *isolate;
-	std::unique_ptr<v8_inspector::V8InspectorClient> inspectorClient;
-	std::unique_ptr<v8_inspector::V8Inspector::Channel> inspectorChannel;
-	std::unique_ptr<v8_inspector::V8Inspector> inspector;
-	std::unique_ptr<v8_inspector::V8InspectorSession> inspectorSession;
 
 public:
 	CV8ScriptRuntime();
 
 	v8::Isolate *GetIsolate() const { return isolate; }
-
-	v8_inspector::V8Inspector *GetInspector() const { return inspector.get(); }
 
 	alt::IResource::Impl *CreateImpl(alt::IResource *resource) override
 	{

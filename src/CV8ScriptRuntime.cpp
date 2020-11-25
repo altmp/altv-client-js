@@ -59,20 +59,6 @@ CV8ScriptRuntime::CV8ScriptRuntime()
 		return v8::MaybeLocal<v8::Promise>();
 	});*/
 
-	/*{
-		v8::Locker locker(isolate);
-		v8::Isolate::Scope isolate_scope(isolate);
-		v8::HandleScope handle_scope(isolate);
-
-		inspectorClient.reset(new alt::CV8InspectorClient);
-		inspectorChannel.reset(new alt::CV8InspectorChannel);
-
-		inspector = v8_inspector::V8Inspector::create(isolate, inspectorClient.get());
-
-		v8_inspector::StringView inspectorView{ (uint8_t*)inspectorViewStr, strlen(inspectorViewStr) };
-		inspectorSession = inspector->connect(1, inspectorChannel.get(), inspectorView);
-	}*/
-
 	{
 		v8::Locker locker(isolate);
 		v8::Isolate::Scope isolate_scope(isolate);
