@@ -25,6 +25,8 @@
 #include "helpers/V8Helpers.h"
 #include "helpers/V8Module.h"
 
+#include "inspector/CV8InspectorClient.h"
+
 static void StaticRequire(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
 	v8::Isolate *isolate = info.GetIsolate();
@@ -153,6 +155,9 @@ bool CV8ResourceImpl::Stop()
 	// }
 
 	//runtime->GetInspector()->contextDestroyed(context.Get(isolate));
+
+	// Remove the inspector
+	if (inspector) delete inspector;
 
 	if (!context.IsEmpty())
 	{
