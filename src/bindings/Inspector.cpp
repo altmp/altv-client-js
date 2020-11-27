@@ -3,7 +3,10 @@
 #include "../helpers/V8ResourceImpl.h"
 #include "../CV8Resource.h"
 #include "cpp-sdk/SDK.h"
-#include "inspector/CV8InspectorClient.h"
+
+#include "../inspector/CV8InspectorClient.h"
+
+extern class CV8ResourceImpl;
 
 static void SetInspectorCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
 {

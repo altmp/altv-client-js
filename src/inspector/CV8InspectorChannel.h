@@ -2,7 +2,7 @@
 
 #include "v8-inspector.h"
 #include "../helpers/V8Helpers.h"
-#include "CV8InspectorClient.h";
+#include "CV8InspectorClient.h"
 
 class CV8InspectorChannel : public v8_inspector::V8Inspector::Channel
 {

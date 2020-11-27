@@ -33,7 +33,7 @@ CV8InspectorClient::CV8InspectorClient(v8::Local<v8::Context> context, bool conn
     _context.Reset(isolate, context);
 }
 
-static void CV8InspectorClient::SendInspectorMessage(const v8::FunctionCallbackInfo<v8::Value>& info)
+void CV8InspectorClient::SendInspectorMessage(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     v8::Isolate* isolate = info.GetIsolate();
     v8::HandleScope handle_scope(isolate);
