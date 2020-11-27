@@ -15,8 +15,8 @@ CV8InspectorClient::CV8InspectorClient(v8::Local<v8::Context> context, bool conn
     context->SetAlignedPointerInEmbedderData(2, this);
     _inspector->contextCreated(v8_inspector::V8ContextInfo(
         context, 1, v8_inspector::StringView()));
-    v8::Local<v8::Value> function =
-        v8::FunctionTemplate::New(_isolate, SendInspectorMessage)
+    /*v8::Local<v8::Value> function =
+        v8::FunctionTemplate::New(_isolate, CV8InspectorClient::SendInspectorMessage)
         ->GetFunction(context)
         .ToLocalChecked();
     bool isSet =
@@ -28,12 +28,12 @@ CV8InspectorClient::CV8InspectorClient(v8::Local<v8::Context> context, bool conn
     if (!isSet) {
         Log::Error << "Could not set global inspector send function" << Log::Endl;
         return;
-    }
+    }*/
 
     _context.Reset(isolate, context);
 }
 
-void CV8InspectorClient::SendInspectorMessage(const v8::FunctionCallbackInfo<v8::Value>& info)
+static void CV8InspectorClient::SendInspectorMessage(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     v8::Isolate* isolate = info.GetIsolate();
     v8::HandleScope handle_scope(isolate);

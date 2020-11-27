@@ -693,7 +693,8 @@ extern V8Class v8Vector3,
 	v8Discord,
 	v8Voice,
 	v8PedBlip,
-	v8VehicleBlip;
+	v8VehicleBlip,
+	v8Inspector;
 extern V8Module altModule(
 	"alt",
 	{v8Vector3,
@@ -714,7 +715,8 @@ extern V8Module altModule(
 	 v8File,
 	 //  v8MapZoomData,
 	 v8Discord,
-	 v8Voice},
+	 v8Voice,
+	 v8Inspector},
 	[](v8::Local<v8::Context> ctx, v8::Local<v8::Object> exports) {
 		V8::RegisterSharedMain(ctx, exports);
 
@@ -788,5 +790,4 @@ extern V8Module altModule(
 
 		V8Helpers::RegisterFunc(exports, "takeScreenshot", &TakeScreenshot);
 		V8Helpers::RegisterFunc(exports, "takeScreenshotGameOnly", &TakeScreenshotGameOnly);
-		V8Helpers::RegisterFunc(exports, "setInspectorCallback", &SetInspectorCallback);
 	});
