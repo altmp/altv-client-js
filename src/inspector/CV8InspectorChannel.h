@@ -23,18 +23,20 @@ private:
     void sendResponse(int callId, std::unique_ptr<v8_inspector::StringBuffer> message) override 
     {
         //Log::Info << __FUNCTION__ << " ID: " << callId << Log::Endl;;
-        Send(message->string());
+        Send(callId, message->string());
     }
     void sendNotification(std::unique_ptr<v8_inspector::StringBuffer> message) override 
     {
         //Log::Info << __FUNCTION__ << Log::Endl;
-        Send(message->string());
+
+        // TODO: Fix notifications sent by the inspector
+        //Send(-1, message->string());
     }
     void flushProtocolNotifications() override 
     {
         //Log::Info << __FUNCTION__ << Log::Endl;
     }
-    void Send(const v8_inspector::StringView& string);
+    void Send(int id, const v8_inspector::StringView& string);
 
     v8::Isolate* _isolate;
     v8::Global<v8::Context> _context;

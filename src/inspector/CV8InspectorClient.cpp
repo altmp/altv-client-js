@@ -33,18 +33,35 @@ CV8InspectorClient::CV8InspectorClient(v8::Local<v8::Context> context, bool conn
     _context.Reset(isolate, context);
 }
 
-void CV8InspectorClient::SendInspectorMessage(const v8::FunctionCallbackInfo<v8::Value>& info)
+v8::Local<v8::Promise> CV8InspectorClient::SendInspectorMessage(v8::Isolate* isolate, alt::String method, v8::Local<v8::Object> params)
 {
-    v8::Isolate* isolate = info.GetIsolate();
     v8::HandleScope handle_scope(isolate);
 
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    V8_RETURN(v8::Undefined(isolate));
+    v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
+    auto id = CV8InspectorClient::GetNextMessageId();
 
-    v8::Local<v8::String> message = info[0]->ToString(context).ToLocalChecked();
+    auto promise = v8::Promise::Resolver::New(ctx);
+    v8::Local<v8::Promise::Resolver> resolver;
+    if (!promise.ToLocal(&resolver))
+        return v8::Local<v8::Promise>();
+
+    promises.emplace(id, v8::Global<v8::Promise::Resolver>(isolate, resolver));
+
+    auto paramsStringified = v8::JSON::Stringify(ctx, params).ToLocalChecked();
+
+    v8::String::Utf8Value paramsUtf(isolate, paramsStringified);
+    std::string paramsString(*paramsUtf);
+
+    // This is a bad solution, too bad!
+    char paramsChar[256];
+    sprintf_s(paramsChar, "{ \"id\": %d, \"method\": \"%s\", \"params\": %s }", id, method.CStr(), paramsString.c_str());
+    v8::Local<v8::String> message = v8::String::NewFromUtf8(
+        isolate,
+        paramsChar
+    ).ToLocalChecked();
 
     v8_inspector::V8InspectorSession* session =
-        CV8InspectorClient::GetSession(context);
+        CV8InspectorClient::GetSession(ctx);
     std::unique_ptr<uint16_t[]> buffer(new uint16_t[message->Length()]);
     message->Write(isolate, buffer.get(), 0, message->Length());
     v8_inspector::StringView message_view(buffer.get(), message->Length());
@@ -52,5 +69,13 @@ void CV8InspectorClient::SendInspectorMessage(const v8::FunctionCallbackInfo<v8:
         v8::SealHandleScope seal_handle_scope(isolate);
         session->dispatchProtocolMessage(message_view);
     }
-    V8_RETURN_BOOLEAN(true);
+    return resolver->GetPromise();
 }
+
+uint32_t CV8InspectorClient::lastMessageId = 0;
+uint32_t CV8InspectorClient::GetNextMessageId()
+{
+    return ++lastMessageId;
+}
+
+std::unordered_map<uint32_t, v8::Global<v8::Promise::Resolver>> CV8InspectorClient::promises;

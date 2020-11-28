@@ -1,9 +1,10 @@
 
-#include "v8-inspector.h";
-#include "../helpers/V8Helpers.h";
-#include "CV8InspectorChannel.h";
+#include "v8-inspector.h"
+#include "../helpers/V8Helpers.h"
+#include "CV8InspectorChannel.h"
+#include "CV8InspectorClient.h"
 
-void CV8InspectorChannel::Send(const v8_inspector::StringView& string)
+void CV8InspectorChannel::Send(int id, const v8_inspector::StringView& string)
 {
     auto isolate = _isolate;
     v8::Isolate::AllowJavascriptExecutionScope allow_script(isolate);
@@ -24,15 +25,20 @@ void CV8InspectorChannel::Send(const v8_inspector::StringView& string)
                 v8::NewStringType::kNormal, length))
         .ToLocalChecked();
 
-    v8::Local<v8::Context> context = _context.Get(isolate);
-    v8::Local<v8::Function> callback = _client->GetCallback(isolate);
-    auto type = callback->TypeOf(isolate);
-    v8::String::Utf8Value utfValue(isolate, type);
-    std::string name(*utfValue);
+    auto it = CV8InspectorClient::promises.find(static_cast<uint32_t>(id));
+    auto promise = it->second.Get(isolate);
 
-    if (callback->IsFunction()) {
+    {
         v8::TryCatch try_catch(isolate);
-        v8::Local<v8::Value> args[] = { message };
-        v8::Local<v8::Function>::Cast(callback)->Call(context, v8::Undefined(isolate), 1, args);
+        v8::Local<v8::Context> context = isolate->GetEnteredContext();
+
+        v8::Local<v8::Object> result = v8::JSON::Parse(context, message).ToLocalChecked().As<v8::Object>();
+        v8::MaybeLocal<v8::Value> error = result->Get(context, v8::String::NewFromUtf8(isolate, "error").ToLocalChecked());
+        v8::Local<v8::Value> errorObj;
+        if (error.ToLocal(&errorObj))
+            promise->Reject(context, errorObj);
+        else
+            promise->Resolve(context, result);
+        CV8InspectorClient::promises.erase(static_cast<uint32_t>(id));
     }
 }

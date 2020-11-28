@@ -7,17 +7,10 @@ class CV8InspectorClient : public v8_inspector::V8InspectorClient
 {
 public:
     CV8InspectorClient(v8::Local<v8::Context> context, bool connect);
-   
-    v8::Local<v8::Function> GetCallback(v8::Isolate* isolate)
-    {
-        return _callback.Get(isolate);
-    }
-    void SetCallback(v8::Local<v8::Function> callback, v8::Isolate* isolate)
-    {
-        _callback.Reset(isolate, callback);
-    }
 
-    static void SendInspectorMessage(const v8::FunctionCallbackInfo<v8::Value>& info);
+    static v8::Local<v8::Promise> SendInspectorMessage(v8::Isolate* isolate, alt::String method, v8::Local<v8::Object> params);
+
+    static std::unordered_map<uint32_t, v8::Global<v8::Promise::Resolver>> promises;
 
 private:
     static v8_inspector::V8InspectorSession* GetSession(v8::Local<v8::Context> context) 
@@ -41,5 +34,6 @@ private:
     v8::Global<v8::Context> _context;
     v8::Isolate* _isolate;
 
-    v8::Global<v8::Function> _callback;
+    static uint32_t GetNextMessageId();
+    static uint32_t lastMessageId;
 };
