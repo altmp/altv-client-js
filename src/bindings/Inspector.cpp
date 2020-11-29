@@ -38,9 +38,22 @@ static void SendInspectorMessage(const v8::FunctionCallbackInfo<v8::Value>& info
 	info.GetReturnValue().Set(promise);
 }
 
+static void SendInspectorMessageRaw(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+	V8_GET_ISOLATE_CONTEXT();
+	V8_CHECK(alt::ICore::Instance().IsDebug(), "The inspector is only available in debug mode");
+	V8_CHECK_ARGS_LEN(1);
+	V8_ARG_TO_STRING(1, message);
+
+	auto promise = CV8InspectorClient::SendInspectorMessage(isolate, message);
+
+	info.GetReturnValue().Set(promise);
+}
+
 extern V8Class v8Inspector("Inspector", nullptr, [](v8::Local<v8::FunctionTemplate> tpl) {
 	v8::Isolate* isolate = v8::Isolate::GetCurrent();
 
 	//V8::SetStaticMethod(isolate, tpl, "setCallback", &SetInspectorCallback);
 	V8::SetStaticMethod(isolate, tpl, "sendMessage", &SendInspectorMessage);
+	V8::SetStaticMethod(isolate, tpl, "sendMessageRaw", &SendInspectorMessageRaw);
 });

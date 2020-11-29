@@ -10,6 +10,7 @@ public:
     CV8InspectorClient(v8::Local<v8::Context> context, bool connect);
 
     static v8::Local<v8::Promise> SendInspectorMessage(v8::Isolate* isolate, alt::String method, v8::Local<v8::Object> params);
+    static v8::Local<v8::Promise> SendInspectorMessage(v8::Isolate* isolate, alt::String messageRaw);
 
     static std::unordered_map<uint32_t, v8::Global<v8::Promise::Resolver>> promises;
 
