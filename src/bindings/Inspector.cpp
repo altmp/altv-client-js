@@ -5,8 +5,7 @@
 #include "cpp-sdk/SDK.h"
 
 #include "../inspector/CV8InspectorClient.h"
-
-extern class CV8ResourceImpl;
+#include "../CV8Resource.h"
 
 /*static void SetInspectorCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
@@ -22,10 +21,11 @@ extern class CV8ResourceImpl;
 
 static void SendInspectorMessage(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-	V8_CHECK(alt::ICore::Instance().IsDebug(), "The inspector is only available in debug mode");
 	V8_GET_ISOLATE_CONTEXT();
+	V8_CHECK(alt::ICore::Instance().IsDebug(), "The inspector is only available in debug mode");
 	V8_CHECK_ARGS_LEN2(1, 2);
 	V8_ARG_TO_STRING(1, method);
+
 	v8::Local<v8::Object> params = v8::Object::New(isolate);
 	if (info.Length() == 2) 
 	{

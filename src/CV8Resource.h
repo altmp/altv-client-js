@@ -9,7 +9,7 @@
 
 #include "helpers/Log.h"
 
-#include "inspector/CV8InspectorClient.h";
+#include "inspector/CV8InspectorClient.h"
 
 class CV8ScriptRuntime;
 

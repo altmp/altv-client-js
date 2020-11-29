@@ -8,27 +8,11 @@ CV8InspectorClient::CV8InspectorClient(v8::Local<v8::Context> context, bool conn
 
     _isolate = context->GetIsolate();
     auto isolate = _isolate;
+
     _channel.reset(new CV8InspectorChannel(context, this));
     _inspector = v8_inspector::V8Inspector::create(isolate, this);
-    _session =
-        _inspector->connect(1, _channel.get(), v8_inspector::StringView());
-    context->SetAlignedPointerInEmbedderData(2, this);
-    _inspector->contextCreated(v8_inspector::V8ContextInfo(
-        context, 1, v8_inspector::StringView()));
-    /*v8::Local<v8::Value> function =
-        v8::FunctionTemplate::New(_isolate, CV8InspectorClient::SendInspectorMessage)
-        ->GetFunction(context)
-        .ToLocalChecked();
-    bool isSet =
-        context->Global()->Set(
-            context,
-            v8::String::NewFromUtf8(isolate, "__send").ToLocalChecked(),
-            function
-        ).FromJust();
-    if (!isSet) {
-        Log::Error << "Could not set global inspector send function" << Log::Endl;
-        return;
-    }*/
+    _session = _inspector->connect(1, _channel.get(), v8_inspector::StringView());
+    _inspector->contextCreated(v8_inspector::V8ContextInfo(context, 1, v8_inspector::StringView()));
 
     _context.Reset(isolate, context);
 }
@@ -54,15 +38,14 @@ v8::Local<v8::Promise> CV8InspectorClient::SendInspectorMessage(v8::Isolate* iso
     // This is a bad solution, too bad!
     char paramsChar[1024];
     sprintf_s(paramsChar, "{ \"id\": %d, \"method\": \"%s\", \"params\": %s }", id, method.CStr(), paramsString.c_str());
-    v8::Local<v8::String> message = v8::String::NewFromUtf8(
-        isolate,
-        paramsChar
-    ).ToLocalChecked();
+    v8::Local<v8::String> message = v8::String::NewFromUtf8(isolate, paramsChar).ToLocalChecked();
 
-    v8_inspector::V8InspectorSession* session =
-        CV8InspectorClient::GetSession(ctx);
+    CV8ResourceImpl* resource = static_cast<CV8ResourceImpl*>(V8ResourceImpl::Get(ctx));
+    v8_inspector::V8InspectorSession* session = resource->GetInspector()->GetSession();
+
     std::unique_ptr<uint16_t[]> buffer(new uint16_t[message->Length()]);
     message->Write(isolate, buffer.get(), 0, message->Length());
+
     v8_inspector::StringView message_view(buffer.get(), message->Length());
     {
         v8::SealHandleScope seal_handle_scope(isolate);

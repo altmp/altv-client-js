@@ -2,6 +2,7 @@
 
 #include "v8-inspector.h"
 #include "../helpers/V8Class.h"
+#include "../CV8Resource.h"
 
 class CV8InspectorClient : public v8_inspector::V8InspectorClient
 {
@@ -12,13 +13,12 @@ public:
 
     static std::unordered_map<uint32_t, v8::Global<v8::Promise::Resolver>> promises;
 
-private:
-    static v8_inspector::V8InspectorSession* GetSession(v8::Local<v8::Context> context) 
+    v8_inspector::V8InspectorSession* GetSession()
     {
-        CV8InspectorClient* inspector_client = static_cast<CV8InspectorClient*>(
-            context->GetAlignedPointerFromEmbedderData(2));
-        return inspector_client->_session.get();
+        return _session.get();
     }
+
+private:
 
     v8::Local<v8::Context> ensureDefaultContextInGroup(int group_id) override 
     {
