@@ -12,6 +12,7 @@
 #include "inspector/CV8InspectorClient.h"
 
 class CV8ScriptRuntime;
+class CV8InspectorClient;
 
 class CV8ResourceImpl : public V8ResourceImpl
 {
