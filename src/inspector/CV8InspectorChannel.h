@@ -28,15 +28,14 @@ private:
     void sendNotification(std::unique_ptr<v8_inspector::StringBuffer> message) override 
     {
         //Log::Info << __FUNCTION__ << Log::Endl;
-
-        // TODO: Fix notifications sent by the inspector
-        //Send(-1, message->string());
+        SendEvent(message->string());
     }
     void flushProtocolNotifications() override 
     {
         //Log::Info << __FUNCTION__ << Log::Endl;
     }
     void Send(int id, const v8_inspector::StringView& string);
+    void SendEvent(const v8_inspector::StringView& string);
 
     v8::Isolate* _isolate;
     v8::Global<v8::Context> _context;

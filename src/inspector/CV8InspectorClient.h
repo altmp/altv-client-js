@@ -19,6 +19,17 @@ public:
         return _session.get();
     }
 
+    v8::Local<v8::Function> GetCallback(v8::Isolate* isolate)
+    {
+        if (_callback.IsEmpty()) return v8::Local<v8::Function>();
+        return _callback.Get(isolate);
+    }
+
+    void SetCallback(v8::Isolate* isolate, v8::Local<v8::Function> callback)
+    {
+        _callback.Reset(isolate, callback);
+    }
+
 private:
 
     v8::Local<v8::Context> ensureDefaultContextInGroup(int group_id) override 
@@ -34,6 +45,7 @@ private:
     std::unique_ptr<v8_inspector::V8Inspector::Channel> _channel;
     v8::Global<v8::Context> _context;
     v8::Isolate* _isolate;
+    v8::Global<v8::Function> _callback;
 
     static uint32_t GetNextMessageId();
     static uint32_t lastMessageId;
