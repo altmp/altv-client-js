@@ -23,7 +23,7 @@ v8::Local<v8::Promise> CV8InspectorClient::SendInspectorMessage(v8::Isolate* iso
 
     std::unique_ptr<uint16_t[]> method_buffer(new uint16_t[method.GetSize()]);
     v8::Local<v8::String> methodString = v8::String::NewFromUtf8(isolate, method.CStr()).ToLocalChecked();
-    methodString->Write(isolate, method_buffer, 0, method.GetSize());
+    methodString->Write(isolate, method_buffer.get(), 0, method.GetSize());
     v8_inspector::StringView method_view(method_buffer.get(), method.GetSize());
     if (!v8_inspector::V8InspectorSession::canDispatchMethod(method_view)) {
         V8Helpers::Throw(isolate, "Invalid protocol method passed");
