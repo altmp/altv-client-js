@@ -4,8 +4,12 @@
 #include "inspector/CV8InspectorChannel.h"
 #include "helpers/V8Module.h"
 
+CV8ScriptRuntime* CV8ScriptRuntime::instance = nullptr;
+
 CV8ScriptRuntime::CV8ScriptRuntime()
 {
+	instance = this;
+
 	platform = v8::platform::NewDefaultPlatform();
 	v8::V8::InitializePlatform(platform.get());
 	v8::V8::Initialize();
@@ -50,14 +54,76 @@ CV8ScriptRuntime::CV8ScriptRuntime()
 		}
 		else
 		{
-			Log::Error << "You're not supposed to ever see this";
+			Log::Error << "You're not supposed to ever see this" << Log::Endl;
 		}
 	});
 
-	/*isolate->SetHostImportModuleDynamicallyCallback([](v8::Local<v8::Context> context, v8::Local<v8::ScriptOrModule> referrer, v8::Local<v8::String> specifier) {
+	isolate->SetHostImportModuleDynamicallyCallback([](v8::Local<v8::Context> context, v8::Local<v8::ScriptOrModule> referrer, v8::Local<v8::String> specifier) {
+		v8::Isolate* isolate = context->GetIsolate();
 
-		return v8::MaybeLocal<v8::Promise>();
-	});*/
+		auto referrerVal = referrer->GetResourceName();
+		if(referrerVal->IsUndefined())
+		{
+			return v8::MaybeLocal<v8::Promise>();
+		}
+
+		std::string referrerUrl = *v8::String::Utf8Value(isolate, referrer->GetResourceName());
+		auto resource = static_cast<CV8ResourceImpl*>(V8ResourceImpl::Get(context));
+
+		auto resolver = v8::Promise::Resolver::New(context).ToLocalChecked();
+
+		V8::CPersistent<v8::Promise::Resolver> presolver(isolate, resolver);
+		V8::CPersistent<v8::String> pspecifier(isolate, specifier);
+		V8::CPersistent<v8::Module> preferrerModule(isolate, resource->GetModuleFromPath(referrerUrl));
+
+		// careful what we take in by value in the lambda
+		// it is possible pass v8::Local but should not be done
+		// make a V8::CPersistent out of it and pass that
+		auto domodule = [isolate, presolver, pspecifier, preferrerModule]{
+			auto referrerModule = preferrerModule.Get(isolate);
+			auto resolver = presolver.Get(isolate);
+			auto specifier = pspecifier.Get(isolate);
+
+			auto ctx = resolver->CreationContext();
+			v8::Context::Scope ctxs(ctx);
+
+			auto mmodule = ResolveModule(ctx, specifier, referrerModule);
+			if(mmodule.IsEmpty())
+			{
+				resolver->Reject(ctx, v8::Exception::ReferenceError(V8_NEW_STRING("Could not resolve module")));
+				return;
+			}
+
+			auto module = mmodule.ToLocalChecked();
+			V8Helpers::TryCatch([&]{
+				if(module->GetStatus() == v8::Module::Status::kUninstantiated && !module->InstantiateModule(ctx, ResolveModule).ToChecked())
+				{
+					resolver->Reject(ctx, v8::Exception::ReferenceError(V8_NEW_STRING("Error instantiating module")));
+					return false;
+				}
+
+				if(module->GetStatus() != v8::Module::Status::kEvaluated && module->Evaluate(ctx).IsEmpty())
+				{
+					resolver->Reject(ctx, v8::Exception::ReferenceError(V8_NEW_STRING("Error evaluating module")));
+					return false;
+				}
+
+				resolver->Resolve(ctx, module->GetModuleNamespace());
+				return true;
+			});
+		};
+
+		if(instance->resourcesLoaded && resource->GetResource()->IsStarted())
+		{
+			// instantly resolve the module
+			domodule();
+		} else {
+			// put it in the queue to resolve after all resource are loaded
+			resource->dynamicImports.emplace_back(domodule);
+		}
+
+		return v8::MaybeLocal<v8::Promise>(resolver->GetPromise());
+	});
 
 	{
 		v8::Locker locker(isolate);

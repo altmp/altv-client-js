@@ -17,6 +17,8 @@ class CV8InspectorClient;
 class CV8ResourceImpl : public V8ResourceImpl
 {
 public:
+	std::list<std::function<void()>> dynamicImports;
+
 	CV8ResourceImpl(alt::IResource *resource, v8::Isolate *isolate) : V8ResourceImpl(isolate, resource)
 	{
 	}
@@ -25,6 +27,8 @@ public:
 	{
 		Log::Debug << __FUNCTION__ << Log::Endl;
 	}
+
+	void ProcessDynamicImports();
 
 	bool Start() override;
 
@@ -88,6 +92,7 @@ public:
 	bool IsValidModule(const std::string &name);
 	std::deque<std::string> GetModuleKeys(const std::string &name);
 	std::string GetModulePath(v8::Local<v8::Module> moduleHandle);
+	v8::Local<v8::Module> GetModuleFromPath(std::string modulePath);
 
 	v8::MaybeLocal<v8::Value> Require(const std::string &name);
 	v8::MaybeLocal<v8::Module> ResolveFile(const std::string &name, v8::Local<v8::Module> referrer);

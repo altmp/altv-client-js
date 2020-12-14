@@ -22,6 +22,17 @@ static void OnServer(const v8::FunctionCallbackInfo<v8::Value> &info)
 	resource->SubscribeRemote(eventName.ToString(), callback, V8::SourceLocation::GetCurrent(isolate));
 }
 
+static void OnceServer(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+	V8_GET_ISOLATE_CONTEXT_RESOURCE();
+
+	V8_CHECK_ARGS_LEN(2);
+	V8_ARG_TO_STRING(1, eventName);
+	V8_ARG_TO_FUNCTION(2, callback);
+
+	resource->SubscribeRemote(eventName.ToString(), callback, V8::SourceLocation::GetCurrent(isolate), true);
+}
+
 static void OffServer(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
 	V8_GET_ISOLATE_CONTEXT_RESOURCE();
@@ -608,7 +619,9 @@ static void TakeScreenshot(const v8::FunctionCallbackInfo<v8::Value> &info)
 	auto &persistent = promises.emplace_back(v8::UniquePersistent<v8::Promise::Resolver>(isolate, v8::Promise::Resolver::New(ctx).ToLocalChecked()));
 
 	api.TakeScreenshot([](alt::StringView base64, const void *userData) {
-		v8::Isolate *isolate = v8::Isolate::GetCurrent();
+		// TODO: NOT PERFORMANCE EFFICIENT TO LOCK HERE, RESOLVE IN NEXT TICK INSTEAD
+
+		v8::Isolate *isolate = CV8ScriptRuntime::instance->GetIsolate();
 		v8::Locker locker(isolate);
 		v8::Isolate::Scope isolateScope(isolate);
 		v8::HandleScope handleScope(isolate);
@@ -623,7 +636,8 @@ static void TakeScreenshot(const v8::FunctionCallbackInfo<v8::Value> &info)
 
 		promises.remove(*persistent);
 	}, &persistent);
-
+	
+	V8_RETURN(persistent.Get(isolate)->GetPromise());
 }
 
 static void TakeScreenshotGameOnly(const v8::FunctionCallbackInfo<v8::Value> &info)
@@ -640,7 +654,9 @@ static void TakeScreenshotGameOnly(const v8::FunctionCallbackInfo<v8::Value> &in
 	auto &persistent = promises.emplace_back(v8::UniquePersistent<v8::Promise::Resolver>(isolate, v8::Promise::Resolver::New(ctx).ToLocalChecked()));
 
 	api.TakeScreenshotGameOnly([](alt::StringView base64, const void *userData) {
-		v8::Isolate *isolate = v8::Isolate::GetCurrent();
+		// TODO: NOT PERFORMANCE EFFICIENT TO LOCK HERE, RESOLVE IN NEXT TICK INSTEAD
+
+		v8::Isolate *isolate = CV8ScriptRuntime::instance->GetIsolate();
 		v8::Locker locker(isolate);
 		v8::Isolate::Scope isolateScope(isolate);
 		v8::HandleScope handleScope(isolate);
@@ -654,10 +670,15 @@ static void TakeScreenshotGameOnly(const v8::FunctionCallbackInfo<v8::Value> &in
 		}
 
 		promises.remove(*persistent);
-		ctx->Exit();
 	}, &persistent);
 
 	V8_RETURN(persistent.Get(isolate)->GetPromise());
+}
+
+static void IsGameFocused(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+	V8_GET_ISOLATE_CONTEXT();
+	V8_RETURN_BOOLEAN(alt::ICore::Instance().IsGameFocused());
 }
 
 extern V8Class v8Vector3,
@@ -699,9 +720,9 @@ extern V8Module altModule(
 	 v8PointBlip,
 	 v8HandlingData,
 	 v8LocalStorage,
-	 //  v8MemoryBuffer,
+	 v8MemoryBuffer,
 	 v8File,
-	 //  v8MapZoomData,
+	 v8MapZoomData,
 	 v8Discord,
 	 v8Voice,
 	 v8Inspector},
@@ -709,6 +730,7 @@ extern V8Module altModule(
 		V8::RegisterSharedMain(ctx, exports);
 
 		V8Helpers::RegisterFunc(exports, "onServer", &OnServer);
+		V8Helpers::RegisterFunc(exports, "onceServer", &OnceServer);
 		V8Helpers::RegisterFunc(exports, "offServer", &OffServer);
 		V8Helpers::RegisterFunc(exports, "emitServer", &EmitServer);
 		V8Helpers::RegisterFunc(exports, "gameControlsEnabled", &GameControlsEnabled);
@@ -775,7 +797,10 @@ extern V8Module altModule(
 		// V8Helpers::RegisterFunc(exports, "setAngularVelocity", &SetAngularVelocity);
 
 		V8Helpers::RegisterFunc(exports, "isInStreamerMode", &IsInStreamerMode);
+		V8Helpers::RegisterFunc(exports, "getPermissionState", &GetPermissionState);
 
 		V8Helpers::RegisterFunc(exports, "takeScreenshot", &TakeScreenshot);
 		V8Helpers::RegisterFunc(exports, "takeScreenshotGameOnly", &TakeScreenshotGameOnly);
+
+		V8Helpers::RegisterFunc(exports, "isGameFocused", &IsGameFocused);
 	});

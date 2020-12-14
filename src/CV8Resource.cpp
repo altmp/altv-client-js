@@ -47,6 +47,15 @@ static void StaticRequire(const v8::FunctionCallbackInfo<v8::Value> &info)
 		V8Helpers::Throw(isolate, "No such module " + name);
 }
 
+void CV8ResourceImpl::ProcessDynamicImports() {
+	for(auto import : dynamicImports)
+	{
+		import();
+	}
+	dynamicImports.clear();
+}
+
+extern V8Module altModule;
 bool CV8ResourceImpl::Start()
 {
 	if (resource->GetMain().IsEmpty())
@@ -111,6 +120,17 @@ bool CV8ResourceImpl::Start()
 
 		modules.emplace(path, v8::UniquePersistent<v8::Module>{isolate, curModule});
 
+		// Overwrite global console object
+		auto console = ctx->Global()->Get(ctx, V8_NEW_STRING("console")).ToLocalChecked().As<v8::Object>();
+		if (!console.IsEmpty())
+		{
+			auto exports = altModule.GetExports(isolate, ctx);
+
+			console->Set(ctx, V8_NEW_STRING("log"), exports->Get(ctx, V8_NEW_STRING("log")).ToLocalChecked());
+			console->Set(ctx, V8_NEW_STRING("warn"), exports->Get(ctx, V8_NEW_STRING("logWarning")).ToLocalChecked());
+			console->Set(ctx, V8_NEW_STRING("error"), exports->Get(ctx, V8_NEW_STRING("logError")).ToLocalChecked());
+		}
+
 		ctx->Global()->Set(ctx, v8::String::NewFromUtf8(isolate, "__internal_get_exports").ToLocalChecked(), v8::Function::New(ctx, &StaticRequire).ToLocalChecked());
 		bool res = curModule->InstantiateModule(ctx, CV8ScriptRuntime::ResolveModule).IsJust();
 
@@ -135,6 +155,11 @@ bool CV8ResourceImpl::Start()
 	}
 
 	DispatchStartEvent(!result);
+
+	// if all resources are already loaded
+	if(CV8ScriptRuntime::instance->resourcesLoaded) {
+		ProcessDynamicImports();
+	}
 
 	return result;
 }
@@ -199,7 +224,7 @@ bool CV8ResourceImpl::OnEvent(const alt::CEvent *e)
 	case alt::CEvent::Type::WEB_VIEW_EVENT:
 	{
 		auto ev = static_cast<const alt::CWebViewEvent *>(e);
-		auto it = webViewHandlers.find(ev->GetTarget());
+		auto it = webViewHandlers.find(ev->GetTarget().Get());
 
 		if (it != webViewHandlers.end())
 		{
@@ -237,6 +262,11 @@ bool CV8ResourceImpl::OnEvent(const alt::CEvent *e)
 	case alt::CEvent::Type::CONNECTION_COMPLETE:
 	{
 		handlers = GetLocalHandlers("connectionComplete");
+		CV8ScriptRuntime* runtime = CV8ScriptRuntime::instance;
+		runtime->resourcesLoaded = true;
+
+		ProcessDynamicImports();
+
 		break;
 	}
 	case alt::CEvent::Type::DISCONNECT_EVENT:
@@ -299,6 +329,21 @@ bool CV8ResourceImpl::OnEvent(const alt::CEvent *e)
 		handlers = GetLocalHandlers("anyResourceError");
 		break;
 	}
+	case alt::CEvent::Type::PLAYER_ENTER_VEHICLE:
+	{
+		handlers = GetLocalHandlers("enteredVehicle");
+		break;
+	}
+	case alt::CEvent::Type::PLAYER_LEAVE_VEHICLE:
+	{
+		handlers = GetLocalHandlers("leftVehicle");
+		break;
+	}
+	case alt::CEvent::Type::PLAYER_CHANGE_VEHICLE_SEAT:
+	{
+		handlers = GetLocalHandlers("changedVehicleSeat");
+		break;
+	}
 	}
 
 	if (handlers.size() > 0)
@@ -345,6 +390,7 @@ bool CV8ResourceImpl::OnEvent(const alt::CEvent *e)
 		}
 		case alt::CEvent::Type::DISCONNECT_EVENT:
 		{
+			CV8ScriptRuntime::instance->resourcesLoaded = false;
 			break;
 		}
 		case alt::CEvent::Type::REMOVE_ENTITY_EVENT:
@@ -441,6 +487,32 @@ bool CV8ResourceImpl::OnEvent(const alt::CEvent *e)
 			args.push_back(v8::String::NewFromUtf8(isolate, ev->GetResource()->GetName().CStr()).ToLocalChecked());
 			break;
 		}
+		case alt::CEvent::Type::PLAYER_ENTER_VEHICLE:
+		{
+			auto ev = static_cast<const alt::CPlayerEnterVehicleEvent*>(e);
+
+			args.push_back(GetOrCreateEntity(ev->GetTarget().Get())->GetJSVal(isolate));
+			args.push_back(v8::Integer::New(isolate, ev->GetSeat()));
+			break;
+		}
+		case alt::CEvent::Type::PLAYER_LEAVE_VEHICLE:
+		{
+			auto ev = static_cast<const alt::CPlayerLeaveVehicleEvent*>(e);
+
+			args.push_back(GetOrCreateEntity(ev->GetTarget().Get())->GetJSVal(isolate));
+			args.push_back(v8::Integer::New(isolate, ev->GetSeat()));
+			break;
+		}
+		case alt::CEvent::Type::PLAYER_CHANGE_VEHICLE_SEAT:
+		{
+			auto ev = static_cast<const alt::CPlayerChangeVehicleSeatEvent*>(e);
+
+			args.push_back(GetOrCreateEntity(ev->GetTarget().Get())->GetJSVal(isolate));
+			args.push_back(v8::Integer::New(isolate, ev->GetOldSeat()));
+			args.push_back(v8::Integer::New(isolate, ev->GetNewSeat()));
+			break;
+		}
+
 		}
 
 		InvokeEventHandlers(e, handlers, args);
@@ -589,6 +661,17 @@ std::string CV8ResourceImpl::GetModulePath(v8::Local<v8::Module> moduleHandle)
 	}
 
 	return std::string{};
+}
+
+v8::Local<v8::Module> CV8ResourceImpl::GetModuleFromPath(std::string modulePath)
+{
+	for (auto& md : modules)
+	{
+		if (md.first == modulePath)
+			return md.second.Get(isolate);
+	}
+
+	return v8::Local<v8::Module>{};
 }
 
 static bool IsSystemModule(const std::string &name)
