@@ -27,7 +27,7 @@ v8::Local<v8::Promise> CV8InspectorClient::SendInspectorMessage(v8::Isolate* iso
     v8_inspector::StringView method_view(method_buffer.get(), method.GetSize());
     if (!v8_inspector::V8InspectorSession::canDispatchMethod(method_view)) {
         V8Helpers::Throw(isolate, "Invalid protocol method passed");
-        return;
+        return v8::Local<v8::Promise>();
     }
 
     v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
