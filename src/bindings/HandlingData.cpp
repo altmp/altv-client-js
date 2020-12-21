@@ -978,7 +978,7 @@ static void LowSpeedTractionLossMultSetter(v8::Local<v8::String>, v8::Local<v8::
 	handling->SetLowSpeedTractionLossMult(fvalue);
 }
 
-static void CamberStiffnesssGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
+static void CamberStiffnessGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
 	V8_GET_ISOLATE_CONTEXT();
 
@@ -990,7 +990,7 @@ static void CamberStiffnesssGetter(v8::Local<v8::String>, const v8::PropertyCall
 	V8_RETURN_NUMBER(handling->GetCamberStiffnesss());
 }
 
-static void CamberStiffnesssSetter(v8::Local<v8::String>, v8::Local<v8::Value> val, const v8::PropertyCallbackInfo<void>& info)
+static void CamberStiffnessSetter(v8::Local<v8::String>, v8::Local<v8::Value> val, const v8::PropertyCallbackInfo<void>& info)
 {
 	V8_GET_ISOLATE_CONTEXT();
 
@@ -1820,7 +1820,7 @@ extern V8Class v8HandlingData("HandlingData", Constructor, [](v8::Local<v8::Func
 		V8::SetAccessor(isolate, tpl, "tractionSpringDeltaMax", &TractionSpringDeltaMaxGetter, &TractionSpringDeltaMaxSetter);
 		V8::SetAccessor(isolate, tpl, "tractionSpringDeltaMaxRatio", &TractionSpringDeltaMaxRatioGetter, &TractionSpringDeltaMaxRatioSetter);
 		V8::SetAccessor(isolate, tpl, "lowSpeedTractionLossMult", &LowSpeedTractionLossMultGetter, &LowSpeedTractionLossMultSetter);
-		V8::SetAccessor(isolate, tpl, "camberStiffnesss", &CamberStiffnesssGetter, &CamberStiffnesssSetter);
+		V8::SetAccessor(isolate, tpl, "camberStiffness", &CamberStiffnessGetter, &CamberStiffnessSetter);
 		V8::SetAccessor(isolate, tpl, "tractionBiasFront", &TractionBiasFrontGetter, &TractionBiasFrontSetter);
 		V8::SetAccessor(isolate, tpl, "tractionBiasRear", &TractionBiasRearGetter, &TractionBiasRearSetter);
 		V8::SetAccessor(isolate, tpl, "tractionLossMult", &TractionLossMultGetter, &TractionLossMultSetter);
