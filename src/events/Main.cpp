@@ -75,11 +75,13 @@ V8::EventHandler keyboardEvent(
 	}
 );
 
+/*
 V8::LocalEventHandler render(
 	EventType::RENDER,
 	"render",
 	[](V8ResourceImpl *resource, const alt::CEvent *e, std::vector<v8::Local<v8::Value>> &args) {
 	});
+*/
 
 V8::LocalEventHandler connectionComplete(
 	EventType::CONNECTION_COMPLETE,
