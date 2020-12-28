@@ -24,11 +24,28 @@ static void GetForHandlingName(const v8::FunctionCallbackInfo<v8::Value>& info)
 	V8_ARG_TO_INTEGER(1, modelHash);
 
 	std::vector<v8::Local<v8::Value>> args{
-		v8::Number::New(isolate, modelHash) 
+		v8::Number::New(isolate, modelHash)
 	};
 
 	extern V8Class v8HandlingData;
 	V8_RETURN(v8HandlingData.New(isolate->GetEnteredContext(), args));
+}
+
+static void GetForHandlingNameDeprecated(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+	V8_GET_ISOLATE_CONTEXT();
+
+	V8_CHECK_ARGS_LEN(1);
+	V8_ARG_TO_INTEGER(1, modelHash);
+
+	std::vector<v8::Local<v8::Value>> args{
+		v8::Number::New(isolate, modelHash)
+	};
+
+	extern V8Class v8HandlingData;
+	V8_RETURN(v8HandlingData.New(isolate->GetEnteredContext(), args));
+
+	Log::Warning << "alt.HandlingData.getForModelName is deprecated and will be removed in the future. Please use alt.HandlingData.getForHandlingName" << Log::Endl;
 }
 
 static void HandlingNameHashGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
@@ -543,6 +560,34 @@ static void BrakeForceSetter(v8::Local<v8::String>, v8::Local<v8::Value> val, co
 	handling->SetBrakeForce(fvalue);
 }
 
+static void BrakeForceGetterDeprecated(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
+{
+	V8_GET_ISOLATE_CONTEXT();
+
+	V8_GET_THIS_INTERNAL_FIELD_INTEGER(1, modelHash);
+
+	auto handling = alt::ICore::Instance().GetHandlingData(modelHash);
+	V8_CHECK(handling, "handling data for vehicle not found");
+
+	V8_RETURN_NUMBER(handling->GetBrakeForce());
+	Log::Warning << "HandlingData.breakForce is deprecated and will be removed in the future. Please use HandlingData.brakeForce instead." << Log::Endl;
+}
+
+static void BrakeForceSetterDeprecated(v8::Local<v8::String>, v8::Local<v8::Value> val, const v8::PropertyCallbackInfo<void>& info)
+{
+	V8_GET_ISOLATE_CONTEXT();
+
+	V8_GET_THIS_INTERNAL_FIELD_INTEGER(1, modelHash);
+
+	auto handling = alt::ICore::Instance().GetHandlingData(modelHash);
+	V8_CHECK(handling, "handling data for vehicle not found");
+
+	V8_TO_NUMBER(val, fvalue);
+
+	handling->SetBrakeForce(fvalue);
+	Log::Warning << "HandlingData.breakForce is deprecated and will be removed in the future. Please use HandlingData.brakeForce instead." << Log::Endl;
+}
+
 static void unkFloat4Getter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
 	V8_GET_ISOLATE_CONTEXT();
@@ -933,7 +978,7 @@ static void LowSpeedTractionLossMultSetter(v8::Local<v8::String>, v8::Local<v8::
 	handling->SetLowSpeedTractionLossMult(fvalue);
 }
 
-static void CamberStiffnesssGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
+static void CamberStiffnessGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
 	V8_GET_ISOLATE_CONTEXT();
 
@@ -942,10 +987,10 @@ static void CamberStiffnesssGetter(v8::Local<v8::String>, const v8::PropertyCall
 	auto handling = alt::ICore::Instance().GetHandlingData(modelHash);
 	V8_CHECK(handling, "handling data for vehicle not found");
 
-	V8_RETURN_NUMBER(handling->GetCamberStiffnesss());
+	V8_RETURN_NUMBER(handling->GetCamberStiffness());
 }
 
-static void CamberStiffnesssSetter(v8::Local<v8::String>, v8::Local<v8::Value> val, const v8::PropertyCallbackInfo<void>& info)
+static void CamberStiffnessSetter(v8::Local<v8::String>, v8::Local<v8::Value> val, const v8::PropertyCallbackInfo<void>& info)
 {
 	V8_GET_ISOLATE_CONTEXT();
 
@@ -956,7 +1001,7 @@ static void CamberStiffnesssSetter(v8::Local<v8::String>, v8::Local<v8::Value> v
 
 	V8_TO_NUMBER(val, fvalue);
 
-	handling->SetCamberStiffnesss(fvalue);
+	handling->SetCamberStiffness(fvalue);
 }
 
 static void TractionBiasFrontGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
@@ -1737,6 +1782,7 @@ extern V8Class v8HandlingData("HandlingData", Constructor, [](v8::Local<v8::Func
 		tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 		V8::SetStaticMethod(isolate, tpl, "getForHandlingName", &GetForHandlingName);
+		V8::SetStaticMethod(isolate, tpl, "getForModelName", &GetForHandlingNameDeprecated);
 
 		V8::SetAccessor(isolate, tpl, "handlingNameHash", &HandlingNameHashGetter);
 		V8::SetAccessor(isolate, tpl, "mass", &MassGetter, &MassSetter);
@@ -1758,6 +1804,7 @@ extern V8Class v8HandlingData("HandlingData", Constructor, [](v8::Local<v8::Func
 		V8::SetAccessor(isolate, tpl, "driveMaxFlatVel", &DriveMaxFlatVelGetter, &DriveMaxFlatVelSetter);
 		V8::SetAccessor(isolate, tpl, "initialDriveMaxFlatVel", &InitialDriveMaxFlatVelGetter, &InitialDriveMaxFlatVelSetter);
 		V8::SetAccessor(isolate, tpl, "brakeForce", &BrakeForceGetter, &BrakeForceSetter);
+		V8::SetAccessor(isolate, tpl, "breakForce", &BrakeForceGetterDeprecated, &BrakeForceSetterDeprecated);
 		V8::SetAccessor(isolate, tpl, "unkFloat4", &unkFloat4Getter, &unkFloat4Setter);
 		V8::SetAccessor(isolate, tpl, "brakeBiasFront", &BrakeBiasFrontGetter, &BrakeBiasFrontSetter);
 		V8::SetAccessor(isolate, tpl, "brakeBiasRear", &BrakeBiasRearGetter, &BrakeBiasRearSetter);
@@ -1773,7 +1820,7 @@ extern V8Class v8HandlingData("HandlingData", Constructor, [](v8::Local<v8::Func
 		V8::SetAccessor(isolate, tpl, "tractionSpringDeltaMax", &TractionSpringDeltaMaxGetter, &TractionSpringDeltaMaxSetter);
 		V8::SetAccessor(isolate, tpl, "tractionSpringDeltaMaxRatio", &TractionSpringDeltaMaxRatioGetter, &TractionSpringDeltaMaxRatioSetter);
 		V8::SetAccessor(isolate, tpl, "lowSpeedTractionLossMult", &LowSpeedTractionLossMultGetter, &LowSpeedTractionLossMultSetter);
-		V8::SetAccessor(isolate, tpl, "camberStiffnesss", &CamberStiffnesssGetter, &CamberStiffnesssSetter);
+		V8::SetAccessor(isolate, tpl, "camberStiffness", &CamberStiffnessGetter, &CamberStiffnessSetter);
 		V8::SetAccessor(isolate, tpl, "tractionBiasFront", &TractionBiasFrontGetter, &TractionBiasFrontSetter);
 		V8::SetAccessor(isolate, tpl, "tractionBiasRear", &TractionBiasRearGetter, &TractionBiasRearSetter);
 		V8::SetAccessor(isolate, tpl, "tractionLossMult", &TractionLossMultGetter, &TractionLossMultSetter);
