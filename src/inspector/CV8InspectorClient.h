@@ -3,16 +3,23 @@
 #include "v8-inspector.h"
 #include "../helpers/V8Class.h"
 #include "../CV8Resource.h"
+#include "ixwebsocket/IXWebSocketServer.h"
 
 class CV8InspectorClient : public v8_inspector::V8InspectorClient
 {
 public:
-    CV8InspectorClient(v8::Local<v8::Context> context, bool connect);
+    CV8InspectorClient(v8::Local<v8::Context> context);
+    ~CV8InspectorClient()
+    {
+        if(_wsServer != nullptr) _wsServer->stop();
+    }
 
     static v8::Local<v8::Promise> SendInspectorMessage(v8::Isolate* isolate, alt::String method, v8::Local<v8::Object> params);
     static v8::Local<v8::Promise> SendInspectorMessage(v8::Isolate* isolate, alt::String messageRaw);
+    static uint32_t SendInspectorMessage(v8::Isolate* isolate, const std::string& messageRaw);
 
     static std::unordered_map<uint32_t, v8::Global<v8::Promise::Resolver>> promises;
+    static std::unordered_map<uint32_t, ix::WebSocket*> pendingMessages;
 
     v8_inspector::V8InspectorSession* GetSession()
     {
@@ -28,6 +35,13 @@ public:
     void SetCallback(v8::Isolate* isolate, v8::Local<v8::Function> callback)
     {
         _callback.Reset(isolate, callback);
+    }
+
+    void CreateWebSocketServer(uint32_t port);
+    void StartWebSocketServer();
+    ix::WebSocketServer* GetWebSocketServer()
+    {
+        return _wsServer;
     }
 
 private:
@@ -46,6 +60,8 @@ private:
     v8::Global<v8::Context> _context;
     v8::Isolate* _isolate;
     v8::Global<v8::Function> _callback;
+
+    ix::WebSocketServer* _wsServer = nullptr;
 
     static uint32_t GetNextMessageId();
     static uint32_t lastMessageId;

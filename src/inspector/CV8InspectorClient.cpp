@@ -2,10 +2,8 @@
 #include "CV8InspectorClient.h"
 #include "CV8InspectorChannel.h"
 
-CV8InspectorClient::CV8InspectorClient(v8::Local<v8::Context> context, bool connect)
+CV8InspectorClient::CV8InspectorClient(v8::Local<v8::Context> context)
 {
-    if (!connect) return;
-
     _isolate = context->GetIsolate();
     auto isolate = _isolate;
 
@@ -93,6 +91,29 @@ v8::Local<v8::Promise> CV8InspectorClient::SendInspectorMessage(v8::Isolate* iso
     return resolver->GetPromise();
 }
 
+uint32_t CV8InspectorClient::SendInspectorMessage(v8::Isolate* isolate, const std::string& messageRaw)
+{
+    v8::HandleScope handle_scope(isolate);
+
+    v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
+    auto id = CV8InspectorClient::GetNextMessageId();
+    CV8ResourceImpl* resource = static_cast<CV8ResourceImpl*>(V8ResourceImpl::Get(ctx));
+    v8_inspector::V8InspectorSession* session = resource->GetInspector()->GetSession();
+
+    v8::Local<v8::String> message = v8::String::NewFromUtf8(isolate, messageRaw.c_str()).ToLocalChecked();
+
+    std::unique_ptr<uint16_t[]> buffer(new uint16_t[message->Length()]);
+    message->Write(isolate, buffer.get(), 0, message->Length());
+
+    v8_inspector::StringView message_view(buffer.get(), message->Length());
+    {
+        v8::SealHandleScope seal_handle_scope(isolate);
+        session->dispatchProtocolMessage(message_view);
+    }
+
+    return id;
+}
+
 uint32_t CV8InspectorClient::lastMessageId = 0;
 uint32_t CV8InspectorClient::GetNextMessageId()
 {
@@ -100,3 +121,42 @@ uint32_t CV8InspectorClient::GetNextMessageId()
 }
 
 std::unordered_map<uint32_t, v8::Global<v8::Promise::Resolver>> CV8InspectorClient::promises;
+std::unordered_map<uint32_t, ix::WebSocket*> CV8InspectorClient::pendingMessages;
+
+void CV8InspectorClient::CreateWebSocketServer(uint32_t port)
+{
+    if(_wsServer != nullptr)
+    {
+        Log::Error << "[V8] The inspector websocket server is already running" << Log::Endl;
+        return;
+    }
+
+    _wsServer = new ix::WebSocketServer(port);
+    _wsServer->setOnClientMessageCallback([this](std::shared_ptr<ix::ConnectionState> connectionState, ix::WebSocket& webSocket, const ix::WebSocketMessagePtr& msg)
+    {
+        if(msg->type == ix::WebSocketMessageType::Open)
+        {
+            Log::Info << "[V8] New connection to inspector websocket server" << Log::Endl;
+        }
+        else if(msg->type == ix::WebSocketMessageType::Message)
+        {
+            Log::Warning << msg->str << Log::Endl;
+            auto id = CV8InspectorClient::SendInspectorMessage(_isolate, msg->str);
+            pendingMessages.emplace(id, &webSocket);
+        }
+        else if(msg->type == ix::WebSocketMessageType::Error)
+        {
+            Log::Error << "[V8] Inspector websocket server received error: " << msg->errorInfo.reason << Log::Endl;
+        }
+    });
+
+    auto result = _wsServer->listen();
+    if(!result.first)
+    {
+        Log::Error << "[V8] Error while starting inspector websocket server: " << result.second << Log::Endl;
+        return;
+    }
+    _wsServer->start();
+
+    Log::Info << "[V8] Started inspector websocket server on port " << std::to_string(port) << Log::Endl;
+}

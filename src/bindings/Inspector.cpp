@@ -10,6 +10,7 @@
 static void SetInspectorCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
 	V8_GET_ISOLATE_CONTEXT();
+	V8_CHECK(alt::ICore::Instance().IsDebug(), "The inspector is only available in debug mode");
 	V8_CHECK_ARGS_LEN(1);
 	V8_ARG_TO_FUNCTION(1, callback);
 
@@ -48,10 +49,22 @@ static void SendInspectorMessageRaw(const v8::FunctionCallbackInfo<v8::Value>& i
 	info.GetReturnValue().Set(promise);
 }
 
+static void SetupWebSocketServer(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+	V8_GET_ISOLATE_CONTEXT();
+	V8_CHECK(alt::ICore::Instance().IsDebug(), "The inspector is only available in debug mode");
+	V8_CHECK_ARGS_LEN(1);
+	V8_ARG_TO_UINT32(1, port);
+
+	auto res = static_cast<CV8ResourceImpl*>(CV8ResourceImpl::Get(ctx));
+	res->GetInspector()->CreateWebSocketServer(port);
+}
+
 extern V8Class v8Inspector("Inspector", nullptr, [](v8::Local<v8::FunctionTemplate> tpl) {
 	v8::Isolate* isolate = v8::Isolate::GetCurrent();
 
 	V8::SetStaticMethod(isolate, tpl, "setEventCallback", &SetInspectorCallback);
 	V8::SetStaticMethod(isolate, tpl, "sendMessage", &SendInspectorMessage);
 	V8::SetStaticMethod(isolate, tpl, "sendMessageRaw", &SendInspectorMessageRaw);
+	V8::SetStaticMethod(isolate, tpl, "startWebSocketServer", &SetupWebSocketServer);
 });

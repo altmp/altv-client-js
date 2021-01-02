@@ -5,6 +5,8 @@
 #include "helpers/V8Module.h"
 #include "events/Events.h"
 
+#include "ixwebsocket/IXNetSystem.h"
+
 CV8ScriptRuntime* CV8ScriptRuntime::instance = nullptr;
 
 CV8ScriptRuntime::CV8ScriptRuntime()
@@ -138,4 +140,6 @@ CV8ScriptRuntime::CV8ScriptRuntime()
 	}
 
 	RegisterEvents();
+
+	ix::initNetSystem();
 }

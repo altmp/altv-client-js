@@ -45,15 +45,25 @@ GroupSources(${PROJECT_SOURCE_DIR}/src "Source Files")
 include_directories(
   ${ALTV_JS_CPP_SDK}
   ${ALTV_JS_DL_DEPS}/include
+  deps/ixwebsocket
 )
 
 set(ALTV_JS_LINKS
   # Platform binaries
   Winmm.lib
   DbgHelp.lib
+  Ws2_32.lib
+  crypt32.lib
+  shlwapi.lib
 
   # V8
   ${ALTV_JS_DL_DEPS}/lib/$<IF:$<CONFIG:Debug>,Debug,Release>/v8_monolith.lib
+
+  # IXWebSocket
+  ${PROJECT_SOURCE_DIR}/deps/ixwebsocket/ixwebsocket.lib
+  ${PROJECT_SOURCE_DIR}/deps/ixwebsocket/zlib.lib
+  ${PROJECT_SOURCE_DIR}/deps/ixwebsocket/libcrypto.lib
+  ${PROJECT_SOURCE_DIR}/deps/ixwebsocket/libssl.lib
 )
 
 set(ALTV_JS_DEFS

@@ -135,7 +135,7 @@ private:
 	using WebViewEvents = std::unordered_multimap<std::string, V8::EventCallback>;
 
 	CV8ScriptRuntime *runtime;
-	CV8InspectorClient *inspector;
+	CV8InspectorClient *inspector = nullptr;
 
 	std::unordered_map<std::string, v8::UniquePersistent<v8::Value>> requires;
 	std::unordered_map<std::string, v8::UniquePersistent<v8::Module>> modules;

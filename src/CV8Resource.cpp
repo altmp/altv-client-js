@@ -80,7 +80,7 @@ bool CV8ResourceImpl::Start()
 	//Log::Debug(V8ResourceImpl::GetResource(isolate->GetEnteredContext()));
 
 	// Start V8 inspector
-	inspector = new CV8InspectorClient(context.Get(isolate), alt::ICore::Instance().IsDebug());
+	if(alt::ICore::Instance().IsDebug()) inspector = new CV8InspectorClient(context.Get(isolate));
 
 	v8::Context::Scope context_scope(ctx);
 
@@ -183,7 +183,7 @@ bool CV8ResourceImpl::Stop()
 	//runtime->GetInspector()->contextDestroyed(context.Get(isolate));
 
 	// Remove the inspector
-	if (inspector) delete inspector;
+	if (inspector != nullptr) delete inspector;
 
 	if (!context.IsEmpty())
 	{

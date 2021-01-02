@@ -26,9 +26,9 @@ void CV8InspectorChannel::Send(int id, const v8_inspector::StringView& string)
         .ToLocalChecked();
 
     auto it = CV8InspectorClient::promises.find(static_cast<uint32_t>(id));
-    auto promise = it->second.Get(isolate);
-
+    if(it != CV8InspectorClient::promises.end())
     {
+        auto promise = it->second.Get(isolate);
         v8::TryCatch try_catch(isolate);
         v8::Local<v8::Context> context = isolate->GetEnteredContext();
 
@@ -40,6 +40,16 @@ void CV8InspectorChannel::Send(int id, const v8_inspector::StringView& string)
         else
             promise->Resolve(context, result);
         CV8InspectorClient::promises.erase(static_cast<uint32_t>(id));
+    }
+
+    auto msg = CV8InspectorClient::pendingMessages.find(static_cast<uint32_t>(id));
+    if(msg != CV8InspectorClient::pendingMessages.end())
+    {
+        v8::String::Utf8Value utf8(isolate, message);
+        std::string str(*utf8);
+        auto socket = msg->second;
+        socket->send(str);
+        CV8InspectorClient::pendingMessages.erase(static_cast<uint32_t>(id));
     }
 }
 
@@ -76,5 +86,16 @@ void CV8InspectorChannel::SendEvent(const v8_inspector::StringView& string)
         v8::Local<v8::Object> result = v8::JSON::Parse(context, message).ToLocalChecked().As<v8::Object>();
         v8::Local<v8::Value> args[] = { message };
         callback->Call(context, v8::Undefined(isolate), 1, args);
+    }
+
+    v8::String::Utf8Value utf8(isolate, message);
+    std::string str(*utf8);
+
+    auto server = _client->GetWebSocketServer();
+    if(server == nullptr) return;
+    auto clients = server->getClients();
+    for(auto& client : clients)
+    {
+        client->send(str);
     }
 }
