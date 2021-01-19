@@ -43,6 +43,8 @@ static void Emit(const v8::FunctionCallbackInfo<v8::Value> &info)
 
 	V8_GET_THIS_BASE_OBJECT(view, alt::IWebView);
 
+	V8_CHECK(view->IsReady(), "Webview emit failed. Webview not ready yet, use the webview load event.");
+
 	alt::MValueArgs mvArgs;
 
 	for (int i = 1; i < info.Length(); ++i)
