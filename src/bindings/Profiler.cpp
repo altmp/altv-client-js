@@ -5,10 +5,12 @@
 #include "../CV8Resource.h"
 #include "v8-profiler.h"
 
+// *** Heap Sampling ***
+
 static void StartHeapSampling(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     V8_GET_ISOLATE_CONTEXT();
-    V8_GET_THIS_INTERNAL_FIELD_EXTERNAL(1, profiler, v8::HeapProfiler)
+    V8_GET_THIS_INTERNAL_FIELD_EXTERNAL(1, profiler, v8::HeapProfiler);
 
     auto result = profiler->StartSamplingHeapProfiler();
     V8_CHECK(result, "Heap sampling is already active");
@@ -17,7 +19,7 @@ static void StartHeapSampling(const v8::FunctionCallbackInfo<v8::Value>& info)
 static void StopHeapSampling(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     V8_GET_ISOLATE_CONTEXT();
-    V8_GET_THIS_INTERNAL_FIELD_EXTERNAL(1, profiler, v8::HeapProfiler)
+    V8_GET_THIS_INTERNAL_FIELD_EXTERNAL(1, profiler, v8::HeapProfiler);
 
     profiler->StopSamplingHeapProfiler();
 }
@@ -25,8 +27,8 @@ static void StopHeapSampling(const v8::FunctionCallbackInfo<v8::Value>& info)
 static v8::Local<v8::Object> SerializeHeapSampleNode(v8::Isolate* isolate, v8::Local<v8::Context> ctx, v8::AllocationProfile::Node* node, std::vector<v8::AllocationProfile::Sample> samples)
 {
     V8_NEW_OBJECT(data);
-    data->Set(ctx, V8_NEW_STRING("name"), node->name);
-    data->Set(ctx, V8_NEW_STRING("scriptName"), node->script_name);
+    data->Set(ctx, V8_NEW_STRING("function"), node->name);
+    data->Set(ctx, V8_NEW_STRING("script"), node->script_name);
     data->Set(ctx, V8_NEW_STRING("line"), v8::Integer::New(isolate, node->line_number));
 
     auto children = node->children;
@@ -70,7 +72,7 @@ static v8::Local<v8::Object> SerializeHeapSampleNode(v8::Isolate* isolate, v8::L
 static void GetHeapSample(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     V8_GET_ISOLATE_CONTEXT();
-    V8_GET_THIS_INTERNAL_FIELD_EXTERNAL(1, profiler, v8::HeapProfiler)
+    V8_GET_THIS_INTERNAL_FIELD_EXTERNAL(1, profiler, v8::HeapProfiler);
 
     // Get the heap sample
     auto profile = profiler->GetAllocationProfile();
@@ -87,6 +89,59 @@ static void GetHeapSample(const v8::FunctionCallbackInfo<v8::Value>& info)
     V8_RETURN(data);
 }
 
+// *******
+
+// *** CPU Profiling ***
+
+static void StartCpuProfiling(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+    V8_GET_ISOLATE_CONTEXT();
+    V8_GET_THIS_INTERNAL_FIELD_EXTERNAL(2, profiler, v8::CpuProfiler);
+    V8_CHECK_ARGS_LEN(1);
+
+    V8_ARG_TO_STRING(1, profileName);
+    profiler->StartProfiling(V8_NEW_STRING(profileName.CStr()));
+}
+
+static v8::Local<v8::Object> SerializeCpuProfileNode(v8::Isolate* isolate, v8::Local<v8::Context> ctx, const v8::CpuProfileNode* node)
+{
+    V8_NEW_OBJECT(data);
+    data->Set(ctx, V8_NEW_STRING("function"), node->GetFunctionName());
+    data->Set(ctx, V8_NEW_STRING("script"), node->GetScriptResourceName());
+    data->Set(ctx, V8_NEW_STRING("line"), v8::Integer::New(isolate, node->GetLineNumber()));
+    data->Set(ctx, V8_NEW_STRING("source"), v8::Integer::New(isolate, node->GetSourceType()));
+
+    auto childrenCount = node->GetChildrenCount();
+    auto childrenArray = v8::Array::New(isolate, childrenCount);
+    for(int i = 0; i < childrenCount; i++)
+    {
+        auto child = node->GetChild(i);
+        auto childObj = SerializeCpuProfileNode(isolate, ctx, child);
+        childrenArray->Set(ctx, childrenArray->Length(), childObj);
+    }
+
+    return data;
+}
+
+static void StopCpuProfiling(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+    V8_GET_ISOLATE_CONTEXT();
+    V8_GET_THIS_INTERNAL_FIELD_EXTERNAL(2, profiler, v8::CpuProfiler);
+    V8_CHECK_ARGS_LEN(1);
+
+    V8_ARG_TO_STRING(1, profileName);
+    auto profile = profiler->StopProfiling(V8_NEW_STRING(profileName.CStr()));
+    V8_CHECK(profile != nullptr, "You have not started cpu profiling");
+
+    V8_NEW_OBJECT(data);
+    auto root = profile->GetTopDownRoot();
+    data->Set(ctx, V8_NEW_STRING("rootNode"), SerializeCpuProfileNode(isolate, ctx, root));
+    V8_OBJECT_SET_INTEGER(data, "startTimestamp", profile->GetStartTime() / 1000);
+    V8_OBJECT_SET_INTEGER(data, "endTimestamp", profile->GetEndTime() / 1000);
+
+    V8_RETURN(data);
+}
+
 static void Constructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     V8_GET_ISOLATE_CONTEXT();
@@ -94,15 +149,29 @@ static void Constructor(const v8::FunctionCallbackInfo<v8::Value>& info)
     V8_CHECK(alt::ICore::Instance().IsDebug(), "The profiler is only available in debug mode");
 
     info.This()->SetInternalField(0, v8::External::New(isolate, isolate->GetHeapProfiler())); // Heap Profiler
-    //info.This()->SetInternalField(1, v8::External::New(isolate, v8::CpuProfiler::New(isolate))); // CPU Profiler
+    info.This()->SetInternalField(1, v8::External::New(isolate, v8::CpuProfiler::New(isolate))); // CPU Profiler
+}
+
+static void Destroy(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+    V8_GET_ISOLATE_CONTEXT();
+
+    V8_GET_THIS_INTERNAL_FIELD_EXTERNAL(2, cpuProfiler, v8::CpuProfiler);
+    cpuProfiler->Dispose();
 }
 
 extern V8Class v8Profiler("Profiler", Constructor, [](v8::Local<v8::FunctionTemplate> tpl) {
     v8::Isolate* isolate = v8::Isolate::GetCurrent();
+    v8::CpuProfiler::UseDetailedSourcePositionsForProfiling(isolate);
 
     tpl->InstanceTemplate()->SetInternalFieldCount(2);
+
+    V8::SetMethod(isolate, tpl, "destroy", &Destroy);
 
     V8::SetMethod(isolate, tpl, "startHeapSampling", &StartHeapSampling);
     V8::SetMethod(isolate, tpl, "stopHeapSampling", &StopHeapSampling);
     V8::SetMethod(isolate, tpl, "getHeapSample", &GetHeapSample);
+
+    V8::SetMethod(isolate, tpl, "startCpuProfiling", &StartCpuProfiling);
+    V8::SetMethod(isolate, tpl, "stopCpuProfiling", &StopCpuProfiling);
 });
