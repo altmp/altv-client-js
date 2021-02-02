@@ -142,14 +142,95 @@ static void StopCpuProfiling(const v8::FunctionCallbackInfo<v8::Value>& info)
     V8_RETURN(data);
 }
 
-static void Constructor(const v8::FunctionCallbackInfo<v8::Value>& info)
+// *******
+
+class CodeEventHandler : public v8::CodeEventHandler
+{
+public:
+    CodeEventHandler(v8::Isolate* isolate) : v8::CodeEventHandler(isolate)
+    {
+
+    }
+    ~CodeEventHandler()
+    {
+        listeners.clear();
+    }
+
+    void Handle(v8::CodeEvent* event)
+    {
+        if(!resource->GetResource()->IsStarted()) return delete this;
+        if(event->GetCodeType() == v8::CodeEventType::kBuiltinType ||
+           event->GetCodeType() == v8::CodeEventType::kBytecodeHandlerType) return;
+
+        auto data = SerializeEvent(event);
+        for(auto& listener : listeners)
+        {
+            listener.Get(resource->GetIsolate())->Call(resource->GetContext(), v8::Undefined(resource->GetIsolate()), 1, &(data.As<v8::Value>()));
+        }
+    }
+
+    v8::Local<v8::Object> SerializeEvent(v8::CodeEvent* event)
+    {
+        auto isolate = resource->GetIsolate();
+        auto obj = v8::Object::New(isolate);
+        obj->Set(resource->GetContext(), V8_NEW_STRING("function"), event->GetFunctionName());
+        obj->Set(resource->GetContext(), V8_NEW_STRING("script"), event->GetScriptName());
+        obj->Set(resource->GetContext(), V8_NEW_STRING("line"), v8::Integer::New(isolate, event->GetScriptLine()));
+        obj->Set(resource->GetContext(), V8_NEW_STRING("type"), v8::Integer::New(isolate, event->GetCodeType()));
+        obj->Set(resource->GetContext(), V8_NEW_STRING("typeName"), V8_NEW_STRING(v8::CodeEvent::GetCodeEventTypeName(event->GetCodeType())));
+        obj->Set(resource->GetContext(), V8_NEW_STRING("size"), v8::Integer::New(isolate, event->GetCodeSize()));
+        obj->Set(resource->GetContext(), V8_NEW_STRING("comment"), V8_NEW_STRING(event->GetComment()));
+
+        return obj;
+    }
+
+    void AddListener(v8::Local<v8::Function> listener)
+    {
+        listeners.emplace_back(v8::UniquePersistent<v8::Function>(resource->GetIsolate(), listener));
+    }
+
+    void SetResource(CV8ResourceImpl* _resource)
+    {
+        resource = _resource;
+    }
+
+private:
+    CV8ResourceImpl* resource;
+    std::vector<v8::UniquePersistent<v8::Function>> listeners;
+};
+
+static void SetCodeEventListener(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     V8_GET_ISOLATE_CONTEXT();
+    V8_GET_THIS_INTERNAL_FIELD_EXTERNAL(3, codeEventHandler, CodeEventHandler);
+    V8_CHECK_ARGS_LEN(1);
+
+    V8_ARG_TO_FUNCTION(1, listener);
+    codeEventHandler->AddListener(listener);
+}
+
+static void ToggleCodeEvents(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+    V8_GET_ISOLATE_CONTEXT();
+    V8_GET_THIS_INTERNAL_FIELD_EXTERNAL(3, codeEventHandler, CodeEventHandler);
+    V8_CHECK_ARGS_LEN(1);
+
+    V8_ARG_TO_BOOLEAN(1, toggle);
+    if(toggle) codeEventHandler->Enable();
+    else codeEventHandler->Disable();
+}
+
+static void Constructor(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+    V8_GET_ISOLATE_CONTEXT_RESOURCE();
     V8_CHECK_CONSTRUCTOR();
     V8_CHECK(alt::ICore::Instance().IsDebug(), "The profiler is only available in debug mode");
 
     info.This()->SetInternalField(0, v8::External::New(isolate, isolate->GetHeapProfiler())); // Heap Profiler
     info.This()->SetInternalField(1, v8::External::New(isolate, v8::CpuProfiler::New(isolate))); // CPU Profiler
+    auto codeEventHandler = new CodeEventHandler(isolate);
+    codeEventHandler->SetResource(static_cast<CV8ResourceImpl*>(resource));
+    info.This()->SetInternalField(2, v8::External::New(isolate, codeEventHandler)); // Code Event Handler class
 }
 
 static void Destroy(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -158,13 +239,15 @@ static void Destroy(const v8::FunctionCallbackInfo<v8::Value>& info)
 
     V8_GET_THIS_INTERNAL_FIELD_EXTERNAL(2, cpuProfiler, v8::CpuProfiler);
     cpuProfiler->Dispose();
+    V8_GET_THIS_INTERNAL_FIELD_EXTERNAL(3, codeEventHandler, CodeEventHandler);
+    delete codeEventHandler;
 }
 
 extern V8Class v8Profiler("Profiler", Constructor, [](v8::Local<v8::FunctionTemplate> tpl) {
     v8::Isolate* isolate = v8::Isolate::GetCurrent();
     v8::CpuProfiler::UseDetailedSourcePositionsForProfiling(isolate);
 
-    tpl->InstanceTemplate()->SetInternalFieldCount(2);
+    tpl->InstanceTemplate()->SetInternalFieldCount(3);
 
     V8::SetMethod(isolate, tpl, "destroy", &Destroy);
 
@@ -174,4 +257,7 @@ extern V8Class v8Profiler("Profiler", Constructor, [](v8::Local<v8::FunctionTemp
 
     V8::SetMethod(isolate, tpl, "startCpuProfiling", &StartCpuProfiling);
     V8::SetMethod(isolate, tpl, "stopCpuProfiling", &StopCpuProfiling);
+
+    V8::SetMethod(isolate, tpl, "toggleCodeEvents", &ToggleCodeEvents);
+    V8::SetMethod(isolate, tpl, "registerCodeEventListener", &SetCodeEventListener);
 });
