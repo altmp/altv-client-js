@@ -240,6 +240,7 @@ static void Destroy(const v8::FunctionCallbackInfo<v8::Value>& info)
     V8_GET_THIS_INTERNAL_FIELD_EXTERNAL(2, cpuProfiler, v8::CpuProfiler);
     cpuProfiler->Dispose();
     V8_GET_THIS_INTERNAL_FIELD_EXTERNAL(3, codeEventHandler, CodeEventHandler);
+    codeEventHandler->Disable();
     delete codeEventHandler;
 }
 
