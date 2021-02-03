@@ -199,7 +199,7 @@ private:
     std::vector<v8::UniquePersistent<v8::Function>> listeners;
 };
 
-static void SetCodeEventListener(const v8::FunctionCallbackInfo<v8::Value>& info)
+static void RegisterCodeEventListener(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     V8_GET_ISOLATE_CONTEXT();
     V8_GET_THIS_INTERNAL_FIELD_EXTERNAL(3, codeEventHandler, CodeEventHandler);
@@ -260,5 +260,5 @@ extern V8Class v8Profiler("Profiler", Constructor, [](v8::Local<v8::FunctionTemp
     V8::SetMethod(isolate, tpl, "stopCpuProfiling", &StopCpuProfiling);
 
     V8::SetMethod(isolate, tpl, "toggleCodeEvents", &ToggleCodeEvents);
-    V8::SetMethod(isolate, tpl, "registerCodeEventListener", &SetCodeEventListener);
+    V8::SetMethod(isolate, tpl, "registerCodeEventListener", &RegisterCodeEventListener);
 });
