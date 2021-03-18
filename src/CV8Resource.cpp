@@ -301,6 +301,12 @@ void CV8ResourceImpl::OnTick()
 				++it;
 		}
 	}
+
+	for(auto& msg : inspector->GetReceivedMesssages())
+	{
+		auto id = CV8InspectorClient::SendInspectorMessage(isolate, msg.second);
+        CV8InspectorClient::EmplacePendingMessage(id, msg.first);
+	}
 }
 
 void CV8ResourceImpl::OnPromiseRejectedWithNoHandler(v8::PromiseRejectMessage &data)

@@ -7,7 +7,7 @@
 #include "cpp-sdk/IScriptRuntime.h"
 
 #include "CV8Resource.h"
-#include "inspector/CV8InspectorClient.h";
+#include "inspector/CV8InspectorClient.h"
 
 class CV8ScriptRuntime : public alt::IScriptRuntime
 {

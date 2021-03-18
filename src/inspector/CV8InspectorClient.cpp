@@ -150,9 +150,7 @@ void CV8InspectorClient::CreateWebSocketServer(uint32_t port)
         }
         else if(msg->type == ix::WebSocketMessageType::Message)
         {
-            Log::Warning << msg->str << Log::Endl;
-            auto id = CV8InspectorClient::SendInspectorMessage(_isolate, msg->str);
-            pendingMessages.emplace(id, &webSocket);
+            receivedMessages.insert({&webSocket, msg->str});
         }
         else if(msg->type == ix::WebSocketMessageType::Error)
         {

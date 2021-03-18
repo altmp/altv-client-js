@@ -22,9 +22,6 @@ public:
     static v8::Local<v8::Promise> SendInspectorMessage(v8::Isolate* isolate, alt::String messageRaw);
     static uint32_t SendInspectorMessage(v8::Isolate* isolate, const std::string& messageRaw);
 
-    static std::unordered_map<uint32_t, v8::Global<v8::Promise::Resolver>> promises;
-    static std::unordered_map<uint32_t, ix::WebSocket*> pendingMessages;
-
     v8_inspector::V8InspectorSession* GetSession()
     {
         return _session.get();
@@ -48,6 +45,19 @@ public:
         return _wsServer;
     }
 
+    auto GetReceivedMesssages()
+    {
+        return receivedMessages;
+    }
+
+    static void EmplacePendingMessage(uint32_t id, ix::WebSocket* socket)
+    {
+        pendingMessages.insert({id, socket});
+    }
+
+    static std::unordered_map<uint32_t, v8::Global<v8::Promise::Resolver>> promises;
+    static std::unordered_map<uint32_t, ix::WebSocket*> pendingMessages;
+
 private:
 
     v8::Local<v8::Context> ensureDefaultContextInGroup(int group_id) override 
@@ -66,6 +76,7 @@ private:
     v8::Global<v8::Function> _callback;
 
     ix::WebSocketServer* _wsServer = nullptr;
+    std::unordered_map<ix::WebSocket*, std::string> receivedMessages;
 
     static uint32_t GetNextMessageId();
     static uint32_t lastMessageId;
