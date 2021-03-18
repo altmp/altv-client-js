@@ -38,14 +38,17 @@ v8::Local<v8::Promise> CV8InspectorClient::SendInspectorMessage(v8::Isolate* iso
 
     promises.emplace(id, v8::Global<v8::Promise::Resolver>(isolate, resolver));
 
-    auto paramsStringified = v8::JSON::Stringify(ctx, params).ToLocalChecked();
-    v8::String::Utf8Value paramsUtf(isolate, paramsStringified);
-    std::string paramsString(*paramsUtf);
+    V8_NEW_OBJECT(messageObject);
+    V8_OBJECT_SET_INTEGER(messageObject, "id", id);
+    V8_OBJECT_SET_STRING(messageObject, "method", method);
+    messageObject->Set(ctx, V8_NEW_STRING("params"), params);
 
-    // This is a bad solution, too bad!
-    char paramsChar[1024];
-    sprintf_s(paramsChar, "{ \"id\": %d, \"method\": \"%s\", \"params\": %s }", id, method.CStr(), paramsString.c_str());
-    v8::Local<v8::String> message = v8::String::NewFromUtf8(isolate, paramsChar).ToLocalChecked();
+    v8::Local<v8::String> message;
+    if(!v8::JSON::Stringify(ctx, messageObject).ToLocal(&message))
+    {
+        Log::Error << "[V8] Failed to parse inspector message" << Log::Endl;
+        return v8::Local<v8::Promise>();
+    }
 
     std::unique_ptr<uint16_t[]> buffer(new uint16_t[message->Length()]);
     message->Write(isolate, buffer.get(), 0, message->Length());
