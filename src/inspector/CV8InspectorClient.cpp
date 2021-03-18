@@ -23,7 +23,8 @@ v8::Local<v8::Promise> CV8InspectorClient::SendInspectorMessage(v8::Isolate* iso
     v8::Local<v8::String> methodString = v8::String::NewFromUtf8(isolate, method.CStr()).ToLocalChecked();
     methodString->Write(isolate, method_buffer.get(), 0, method.GetSize());
     v8_inspector::StringView method_view(method_buffer.get(), method.GetSize());
-    if (!v8_inspector::V8InspectorSession::canDispatchMethod(method_view)) {
+    if (!v8_inspector::V8InspectorSession::canDispatchMethod(method_view)) 
+    {
         V8Helpers::Throw(isolate, "Invalid protocol method passed");
         return v8::Local<v8::Promise>();
     }
@@ -34,7 +35,10 @@ v8::Local<v8::Promise> CV8InspectorClient::SendInspectorMessage(v8::Isolate* iso
     auto promise = v8::Promise::Resolver::New(ctx);
     v8::Local<v8::Promise::Resolver> resolver;
     if (!promise.ToLocal(&resolver))
+    {
+        V8Helpers::Throw(isolate, "Could not create promise");
         return v8::Local<v8::Promise>();
+    }
 
     promises.emplace(id, v8::Global<v8::Promise::Resolver>(isolate, resolver));
 
@@ -46,7 +50,7 @@ v8::Local<v8::Promise> CV8InspectorClient::SendInspectorMessage(v8::Isolate* iso
     v8::Local<v8::String> message;
     if(!v8::JSON::Stringify(ctx, messageObject).ToLocal(&message))
     {
-        Log::Error << "[V8] Failed to parse inspector message" << Log::Endl;
+        V8Helpers::Throw(isolate, "Failed to parse inspector message");
         return v8::Local<v8::Promise>();
     }
 
@@ -74,7 +78,10 @@ v8::Local<v8::Promise> CV8InspectorClient::SendInspectorMessage(v8::Isolate* iso
     auto promise = v8::Promise::Resolver::New(ctx);
     v8::Local<v8::Promise::Resolver> resolver;
     if (!promise.ToLocal(&resolver))
+    {
+        V8Helpers::Throw(isolate, "Could not create promise");
         return v8::Local<v8::Promise>();
+    }
 
     promises.emplace(id, v8::Global<v8::Promise::Resolver>(isolate, resolver));
 
