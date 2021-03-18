@@ -11,7 +11,11 @@ public:
     CV8InspectorClient(v8::Local<v8::Context> context);
     ~CV8InspectorClient()
     {
-        if(_wsServer != nullptr) _wsServer->stop();
+        if(_wsServer != nullptr) 
+        {
+            _wsServer->stop();
+            delete _wsServer;
+        }
     }
 
     static v8::Local<v8::Promise> SendInspectorMessage(v8::Isolate* isolate, alt::String method, v8::Local<v8::Object> params);
