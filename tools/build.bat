@@ -14,6 +14,6 @@ copy BUILD\Release\altv-client-js.pdb dist
 
 :: The extra.bat can be used to run an additional step after compilation,
 :: like copying the file to your client directory automatically
-IF EXIST extra.bat (
-    extra.bat
+IF EXIST tools\extra.bat (
+    tools\extra.bat
 )
