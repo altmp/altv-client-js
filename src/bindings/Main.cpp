@@ -735,7 +735,8 @@ extern V8Class v8Vector3,
 	v8PedBlip,
 	v8VehicleBlip,
 	v8WebSocketClient,
-	v8Checkpoint;
+	v8Checkpoint,
+	v8Benchmark;
 extern V8Module altModule(
 	"alt",
 	{v8Vector3,
@@ -759,7 +760,8 @@ extern V8Module altModule(
 	 v8Discord,
 	 v8Voice,
 	 v8WebSocketClient,
-	 v8Checkpoint},
+	 v8Checkpoint,
+	 v8Benchmark},
 	[](v8::Local<v8::Context> ctx, v8::Local<v8::Object> exports) {
 		V8::RegisterSharedMain(ctx, exports);
 
