@@ -9,13 +9,14 @@ static void Constructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     V8_GET_ISOLATE_CONTEXT_RESOURCE();
 	V8_CHECK_CONSTRUCTOR();
-    V8_CHECK_ARGS_LEN2(2, 3);
+    V8_CHECK_ARGS_LEN_MIN_MAX(2, 4);
 
     V8_ARG_TO_STRING(1, source);
     V8_ARG_TO_NUMBER(2, volume);
 
     uint32_t category = 0;
-    if(info.Length() == 3)
+    bool frontend = false;
+    if(info.Length() == 3 || info.Length() == 4)
     {
         if(info[2]->IsNumber())
         {
@@ -27,9 +28,14 @@ static void Constructor(const v8::FunctionCallbackInfo<v8::Value>& info)
             V8_ARG_TO_STRING(3, categ);
             category = alt::ICore::Instance().Hash(categ);
         }
+        if (info.Length() == 4)
+        {
+            V8_ARG_TO_BOOLEAN(4, frntnd);
+            frontend = frntnd;
+        }
     }
 
-    auto audio = alt::ICore::Instance().CreateAudio(source, volume, category, resource->GetResource());
+    auto audio = alt::ICore::Instance().CreateAudio(source, volume, category, frontend, resource->GetResource());
     V8_BIND_BASE_OBJECT(audio, "Failed to create Audio");
 }
 
@@ -187,7 +193,7 @@ extern V8Class v8Audio("Audio", v8BaseObject, &Constructor, [](v8::Local<v8::Fun
     V8::SetAccessor<IAudio, bool, &IAudio::IsLoop, &IAudio::SetLoop>(isolate, tpl, "looped");
     V8::SetAccessor<IAudio, float, &IAudio::GetVolume, &IAudio::SetVolume>(isolate, tpl, "volume");
     V8::SetAccessor(isolate, tpl, "category", &CategoryGetter, &CategorySetter);
-    V8::SetAccessor<IAudio, bool, &IAudio::IsFrontendPlay, &IAudio::SetFrontendPlay>(isolate, tpl, "frontendPlay");
+    V8::SetAccessor<IAudio, bool, &IAudio::IsFrontendPlay>(isolate, tpl, "frontendPlay");
     V8::SetAccessor<IAudio, double, &IAudio::GetCurrentTime>(isolate, tpl, "currentTime");
     V8::SetAccessor<IAudio, double, &IAudio::GetMaxTime>(isolate, tpl, "maxTime");
     V8::SetAccessor<IAudio, bool, &IAudio::IsPlaying>(isolate, tpl, "playing");
