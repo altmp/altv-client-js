@@ -1,5 +1,6 @@
 #include "../CV8Resource.h"
 #include "../helpers/V8Helpers.h"
+#include "../helpers/V8BindHelpers.h"
 #include "cpp-sdk/script-objects/IBlip.h"
 
 static void ToString(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -597,42 +598,43 @@ static void Fade(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 extern V8Class v8WorldObject;
 extern V8Class v8Blip("Blip", v8WorldObject, Constructor, [](v8::Local<v8::FunctionTemplate> tpl){
+	using namespace alt;
     v8::Isolate* isolate = v8::Isolate::GetCurrent();
 
 	V8::SetMethod(isolate, tpl, "toString", ToString);
 
 	V8::SetStaticAccessor(isolate, tpl, "routeColor", &RouteColorGetter, &RouteColorSetter);
 
-	V8::SetAccessor(isolate, tpl, "sprite", &SpriteGetter, &SpriteSetter);
-	V8::SetAccessor(isolate, tpl, "size", &SizeGetter, &SizeSetter);
+	V8::SetAccessor<IBlip, int32_t, &IBlip::GetSprite, &IBlip::SetSprite>(isolate, tpl, "sprite");
+	//V8::SetAccessor<IBlip, Vector2f, &IBlip::GetScaleXY, &IBlip::SetScaleXY>(isolate, tpl, "size");
 	V8::SetAccessor(isolate, tpl, "scale", &ScaleGetter, &ScaleSetter);
-	V8::SetAccessor(isolate, tpl, "color", &ColorGetter, &ColorSetter);
-	V8::SetAccessor(isolate, tpl, "secondaryColor", &SecondaryColorGetter, &SecondaryColorSetter);
-	V8::SetAccessor(isolate, tpl, "alpha", &AlphaGetter, &AlphaSetter);
-	V8::SetAccessor(isolate, tpl, "flashTimer", &FlashTimerGetter, &FlashTimerSetter);
-	V8::SetAccessor(isolate, tpl, "flashInterval", &FlashIntervalGetter, &FlashIntervalSetter);
-	V8::SetAccessor(isolate, tpl, "route", &RouteGetter, &RouteSetter);
-	V8::SetAccessor(isolate, tpl, "bright", &BrightGetter, &BrightSetter);
-	V8::SetAccessor(isolate, tpl, "number", &NumberGetter, &NumberSetter);
-	V8::SetAccessor(isolate, tpl, "display", &DisplayGetter, &DisplaySetter);
-	V8::SetAccessor(isolate, tpl, "showCone", &ShowConeGetter, &ShowConeSetter);
-	V8::SetAccessor(isolate, tpl, "flashes", &FlashesGetter, &FlashesSetter);
-	V8::SetAccessor(isolate, tpl, "flashesAlternate", &FlashesAlternateGetter, &FlashesAlternateSetter);
-	V8::SetAccessor(isolate, tpl, "shortRange", &ShortRangeGetter, &ShortRangeSetter);
-	V8::SetAccessor(isolate, tpl, "priority", &PriorityGetter, &PrioritySetter);
-	V8::SetAccessor(isolate, tpl, "heading", &RotationGetter, &RotationSetter);
-	V8::SetAccessor(isolate, tpl, "gxtName", &GxtNameGetter, &GxtNameSetter);
-	V8::SetAccessor(isolate, tpl, "name", &NameGetter, &NameSetter);
-	V8::SetAccessor(isolate, tpl, "pulse", &PulseGetter, &PulseSetter);
-	V8::SetAccessor(isolate, tpl, "asMissionCreator", &AsMissionCreatorGetter, &AsMissionCreatorSetter);
-	V8::SetAccessor(isolate, tpl, "tickVisible", &TickVisibleGetter, &TickVisibleSetter);
-	V8::SetAccessor(isolate, tpl, "headingIndicatorVisible", &HeadingIndicatorVisibleGetter, &HeadingIndicatorVisibleSetter);
-	V8::SetAccessor(isolate, tpl, "outlineIndicatorVisible", &OutlineIndicatorVisibleGetter, &OutlineIndicatorVisibleSetter);
-	V8::SetAccessor(isolate, tpl, "friendIndicatorVisible", &FriendIndicatorVisibleGetter, &FriendIndicatorVisibleSetter);
-	V8::SetAccessor(isolate, tpl, "crewIndicatorVisible", &CrewIndicatorVisibleGetter, &CrewIndicatorVisibleSetter);
-	V8::SetAccessor(isolate, tpl, "category", &CategoryGetter, &CategorySetter);
-	V8::SetAccessor(isolate, tpl, "highDetail", &HighDetailGetter, &HighDetailSetter);
-	V8::SetAccessor(isolate, tpl, "shrinked", &ShrinkedGetter, &ShrinkedSetter);
+	V8::SetAccessor<IBlip, int32_t, &IBlip::GetColor, &IBlip::SetColor>(isolate, tpl, "color");
+	V8::SetAccessor<IBlip, RGBA, &IBlip::GetSecondaryColor, &IBlip::SetSecondaryColor>(isolate, tpl, "secondaryColor");
+	V8::SetAccessor<IBlip, int32_t, &IBlip::GetAlpha, &IBlip::SetAlpha>(isolate, tpl, "alpha");
+	V8::SetAccessor<IBlip, int32_t, &IBlip::GetFlashTimer, &IBlip::SetFlashTimer>(isolate, tpl, "flashTimer");
+	V8::SetAccessor<IBlip, int32_t, &IBlip::GetFlashInterval, &IBlip::SetFlashInterval>(isolate, tpl, "flashInterval");
+	V8::SetAccessor<IBlip, bool, &IBlip::GetRoute, &IBlip::SetRoute>(isolate, tpl, "route");
+	V8::SetAccessor<IBlip, bool, &IBlip::GetBright, &IBlip::SetBright>(isolate, tpl, "bright");
+	V8::SetAccessor<IBlip, int32_t, &IBlip::GetNumber, &IBlip::SetNumber>(isolate, tpl, "number");
+	V8::SetAccessor<IBlip, int32_t, &IBlip::GetDisplay, &IBlip::SetDisplay>(isolate, tpl, "display");
+	V8::SetAccessor<IBlip, bool, &IBlip::GetShowCone, &IBlip::SetShowCone>(isolate, tpl, "showCone");
+	V8::SetAccessor<IBlip, bool, &IBlip::GetFlashes, &IBlip::SetFlashes>(isolate, tpl, "flashes");
+	V8::SetAccessor<IBlip, bool, &IBlip::GetFlashesAlternate, &IBlip::SetFlashesAlternate>(isolate, tpl, "flashesAlternate");
+	V8::SetAccessor<IBlip, bool, &IBlip::GetAsShortRange, &IBlip::SetAsShortRange>(isolate, tpl, "shortRange");
+	V8::SetAccessor<IBlip, int32_t, &IBlip::GetPriority, &IBlip::SetPriority>(isolate, tpl, "priority");
+	V8::SetAccessor<IBlip, float, &IBlip::GetRotation, &IBlip::SetRotation>(isolate, tpl, "heading");
+	//V8::SetAccessor<IBlip, alt::StringView, &IBlip::GetGxtName, &IBlip::SetGxtName>(isolate, tpl, "gxtName");
+	//V8::SetAccessor<IBlip, int32_t, &IBlip::GetName, &IBlip::SetName>(isolate, tpl, "name");
+	V8::SetAccessor<IBlip, bool, &IBlip::GetPulse, &IBlip::SetPulse>(isolate, tpl, "pulse");
+	V8::SetAccessor<IBlip, bool, &IBlip::GetAsMissionCreator, &IBlip::SetAsMissionCreator>(isolate, tpl, "asMissionCreator");
+	V8::SetAccessor<IBlip, bool, &IBlip::GetTickVisible, &IBlip::SetTickVisible>(isolate, tpl, "tickVisible");
+	V8::SetAccessor<IBlip, bool, &IBlip::GetHeadingIndicatorVisible, &IBlip::SetHeadingIndicatorVisible>(isolate, tpl, "headingIndicatorVisible");
+	V8::SetAccessor<IBlip, bool, &IBlip::GetOutlineIndicatorVisible, &IBlip::SetOutlineIndicatorVisible>(isolate, tpl, "outlineIndicatorVisible");
+	V8::SetAccessor<IBlip, bool, &IBlip::GetFriendIndicatorVisible, &IBlip::SetFriendIndicatorVisible>(isolate, tpl, "friendIndicatorVisible");
+	V8::SetAccessor<IBlip, bool, &IBlip::GetCrewIndicatorVisible, &IBlip::SetCrewIndicatorVisible>(isolate, tpl, "crewIndicatorVisible");
+	V8::SetAccessor<IBlip, int32_t, &IBlip::GetCategory, &IBlip::SetCategory>(isolate, tpl, "category");
+	V8::SetAccessor<IBlip, bool, &IBlip::GetAsHighDetail, &IBlip::SetAsHighDetail>(isolate, tpl, "highDetail");
+	V8::SetAccessor<IBlip, bool, &IBlip::GetShrinked, &IBlip::SetShrinked>(isolate, tpl, "shrinked");
 
 	V8::SetMethod(isolate, tpl, "fade", &Fade);
 });
