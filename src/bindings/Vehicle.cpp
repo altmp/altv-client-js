@@ -133,12 +133,12 @@ extern V8Class v8Vehicle("Vehicle", v8Entity, [](v8::Local<v8::FunctionTemplate>
     V8::SetStaticAccessor(isolate, tpl, "streamedIn", &StreamedInGetter);
 
     // Common getters
-    //V8::SetAccessor<IVehicle, float, &IVehicle::GetWheelSpeed>(isolate, tpl, "speed");
-    //V8::SetAccessor<IVehicle, uint16_t, &IVehicle::GetCurrentGear, &IVehicle::SetCurrentGear>(isolate, tpl, "gear");
-    //V8::SetAccessor<IVehicle, uint16_t, &IVehicle::GetMaxGear>(isolate, tpl, "maxGear");
-    //V8::SetAccessor<IVehicle, float, &IVehicle::GetCurrentRPM>(isolate, tpl, "rpm");
+    V8::SetAccessor<IVehicle, float, &IVehicle::GetWheelSpeed>(isolate, tpl, "speed");
+    V8::SetAccessor<IVehicle, uint16_t, &IVehicle::GetCurrentGear, &IVehicle::SetCurrentGear>(isolate, tpl, "gear");
+    V8::SetAccessor<IVehicle, uint16_t, &IVehicle::GetMaxGear>(isolate, tpl, "maxGear");
+    V8::SetAccessor<IVehicle, float, &IVehicle::GetCurrentRPM>(isolate, tpl, "rpm");
     V8::SetAccessor<IVehicle, uint8_t, &IVehicle::GetWheelsCount>(isolate, tpl, "wheelsCount");
-    //V8::SetAccessor<IVehicle, alt::Vector3f, &IVehicle::GetSpeedVector>(isolate, tpl, "speedVector", &SpeedVectorGetter);
+    V8::SetAccessor<IVehicle, alt::Vector3f, &IVehicle::GetSpeedVector>(isolate, tpl, "speedVector");
     V8::SetAccessor(isolate, tpl, "handling", &HandlingGetter);
     V8::SetMethod(isolate, tpl, "toggleExtra", ToggleExtra);
     V8::SetAccessor<IVehicle, uint8_t, &IVehicle::GetLightsIndicator, &IVehicle::SetLightsIndicator>(isolate, tpl, "indicatorLights");
