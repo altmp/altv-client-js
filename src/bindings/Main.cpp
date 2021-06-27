@@ -791,6 +791,44 @@ static void GetHeadshotBase64(const v8::FunctionCallbackInfo<v8::Value>& info)
 	V8_RETURN_STRING(alt::ICore::Instance().HeadshotToBase64(id).CStr());
 }
 
+static void GetStackTrace(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+	V8_GET_ISOLATE_CONTEXT();
+	V8_CHECK_ARGS_LEN2(0, 1);
+
+	uint32_t size = 16;
+	if(info.Length() == 1)
+	{
+		V8_ARG_TO_UINT32(1, stackSize);
+		size = stackSize;
+	}
+
+	auto stack = v8::StackTrace::CurrentStackTrace(isolate, size);
+	auto frameCount = stack->GetFrameCount();
+
+	auto result = v8::Array::New(isolate, frameCount);
+	for(int i = 0; i < frameCount; i++)
+	{
+		V8_NEW_OBJECT(frameObj);
+		auto frame = stack->GetFrame(isolate, i);
+
+		frameObj->Set(ctx, V8_NEW_STRING("script"), frame->GetScriptName());
+		frameObj->Set(ctx, V8_NEW_STRING("line"), v8::Integer::New(isolate, frame->GetLineNumber()));
+		frameObj->Set(ctx, V8_NEW_STRING("function"), frame->GetFunctionName());
+
+		alt::String type("unknown");
+		if(frame->IsUserJavaScript()) type = "script";
+		else if(frame->IsConstructor()) type = "constructor";
+		else if(frame->IsEval()) type = "eval";
+		else if(frame->IsWasm()) type = "wasm";
+		V8_OBJECT_SET_STRING(frameObj, "type", type);
+
+		result->Set(ctx, i, frameObj);
+	}
+
+	V8_RETURN(result);
+}
+
 extern V8Class v8Vector3,
 	v8Vector2,
 	v8RGBA,
@@ -930,4 +968,6 @@ extern V8Module altModule(
 		V8Helpers::RegisterFunc(exports, "evalModule", &EvalModule);
 
 		V8Helpers::RegisterFunc(exports, "getHeadshotBase64", &GetHeadshotBase64);
+
+		V8Helpers::RegisterFunc(exports, "getStackTrace", &GetStackTrace);
 	});
