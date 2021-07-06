@@ -100,17 +100,18 @@ bool CV8ResourceImpl::Start()
 
 	v8::Local<v8::String> sourceCode = v8::String::NewFromUtf8(isolate, src.GetData(), v8::NewStringType::kNormal, src.GetSize()).ToLocalChecked();
 
-	v8::ScriptOrigin scriptOrigin{
-		v8::String::NewFromUtf8(isolate, path.c_str()).ToLocalChecked(),
-		v8::Local<v8::Integer>(),
-		v8::Local<v8::Integer>(),
-		v8::Local<v8::Boolean>(),
-		v8::Local<v8::Integer>(),
+	v8::ScriptOrigin scriptOrigin(
+		isolate,
+		V8_NEW_STRING(path.c_str()),
+		0,
+		0, false,
+		-1,
 		v8::Local<v8::Value>(),
-		v8::Local<v8::Boolean>(),
-		v8::Local<v8::Boolean>(),
-		v8::True(isolate),
-		v8::Local<v8::PrimitiveArray>()};
+		false,
+		false,
+		true,
+		v8::Local<v8::PrimitiveArray>()
+	);
 
 	bool result = V8Helpers::TryCatch([&]() {
 		v8::ScriptCompiler::Source source{sourceCode, scriptOrigin};
@@ -377,17 +378,18 @@ static v8::MaybeLocal<v8::Module> CompileESM(v8::Isolate *isolate, const std::st
 {
 	v8::Local<v8::String> sourceCode = v8::String::NewFromUtf8(isolate, src.data(), v8::NewStringType::kNormal, src.size()).ToLocalChecked();
 
-	v8::ScriptOrigin scriptOrigin{
-		v8::String::NewFromUtf8(isolate, name.c_str()).ToLocalChecked(),
-		v8::Local<v8::Integer>(),
-		v8::Local<v8::Integer>(),
-		v8::Local<v8::Boolean>(),
-		v8::Local<v8::Integer>(),
+	v8::ScriptOrigin scriptOrigin(
+		isolate,
+		V8_NEW_STRING(name.c_str()),
+		0,
+		0, false,
+		-1,
 		v8::Local<v8::Value>(),
-		v8::Local<v8::Boolean>(),
-		v8::Local<v8::Boolean>(),
-		v8::True(isolate),
-		v8::Local<v8::PrimitiveArray>()};
+		false,
+		false,
+		true,
+		v8::Local<v8::PrimitiveArray>()
+	);
 
 	v8::ScriptCompiler::Source source{sourceCode, scriptOrigin};
 	return v8::ScriptCompiler::CompileModule(isolate, &source);
