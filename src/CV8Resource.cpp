@@ -33,7 +33,7 @@ static void StaticRequire(const v8::FunctionCallbackInfo<v8::Value> &info)
 	V8_CHECK(info.Length() == 1, "1 arg expected");
 	V8_CHECK(info[0]->IsString(), "moduleName must be a string");
 
-	V8ResourceImpl *resource = V8ResourceImpl::Get(isolate->GetEnteredContext());
+	V8ResourceImpl *resource = V8ResourceImpl::Get(isolate->GetEnteredOrMicrotaskContext());
 	V8_CHECK(resource, "invalid resource");
 
 	std::string name{*v8::String::Utf8Value{isolate, info[0]}};
@@ -78,7 +78,7 @@ bool CV8ResourceImpl::Start()
 	v8::Context::Scope context_scope(ctx);
 
 	//Log::Debug(V8ResourceImpl::GetResource(ctx));
-	//Log::Debug(V8ResourceImpl::GetResource(isolate->GetEnteredContext()));
+	//Log::Debug(V8ResourceImpl::GetResource(isolate->GetEnteredOrMicrotaskContext()));
 
 	/*runtime->GetInspector()->contextCreated({
 		ctx,

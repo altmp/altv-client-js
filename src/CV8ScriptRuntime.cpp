@@ -21,7 +21,7 @@ CV8ScriptRuntime::CV8ScriptRuntime()
 	isolate->SetPromiseRejectCallback([](v8::PromiseRejectMessage message) {
 		v8::Isolate *isolate = v8::Isolate::GetCurrent();
 		v8::Local<v8::Value> value = message.GetValue();
-		v8::Local<v8::Context> ctx = isolate->GetEnteredContext();
+		v8::Local<v8::Context> ctx = isolate->GetEnteredOrMicrotaskContext();
 
 		CV8ResourceImpl *resource = static_cast<CV8ResourceImpl *>(V8ResourceImpl::Get(ctx));
 		if (resource)
