@@ -200,7 +200,7 @@ static void Constructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 	V8_ARG_TO_STRING(1, url);
 
-	alt::IResource* altres = V8ResourceImpl::GetResource(isolate->GetEnteredContext());
+	alt::IResource* altres = V8ResourceImpl::GetResource(isolate->GetEnteredOrMicrotaskContext());
 	V8_CHECK(altres, "invalid resource");
 
 	alt::Ref<IWebView> view = nullptr;
@@ -234,7 +234,7 @@ static void Constructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 	}
 	else if (info.Length() == 3)
 	{
-		V8_ARG_TO_INTEGER(2, drawableHash);
+		V8_ARG_TO_INT(2, drawableHash);
 		V8_ARG_TO_STRING(3, targetTextureStr);
 
 		auto texture = alt::ICore::Instance().GetTextureFromDrawable(drawableHash, targetTextureStr);

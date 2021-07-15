@@ -15,7 +15,7 @@ static void Constructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 	V8_ARG_TO_STRING(1, url);
 
-	alt::IResource* altres = V8ResourceImpl::GetResource(isolate->GetEnteredContext());
+	alt::IResource* altres = V8ResourceImpl::GetResource(isolate->GetEnteredOrMicrotaskContext());
 	V8_CHECK(altres, "invalid resource");
 
 	alt::Ref<IWebSocketClient> webSocket = nullptr;
@@ -53,7 +53,7 @@ static void Off(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 static void Start(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-	V8_GET_ISOLATE(info);
+	V8_GET_ISOLATE();
 
 	V8_GET_THIS_BASE_OBJECT(webSocket, alt::IWebSocketClient);
 
@@ -76,14 +76,14 @@ static void Send(const v8::FunctionCallbackInfo<v8::Value>& info)
 	else if (info[0]->IsArrayBufferView()) 
 	{
 		V8_ARG_TO_ARRAY_BUFFER_VIEW(1, v8ArrayBufferView);
-		auto v8Buffer = v8ArrayBufferView->Buffer()->GetContents();
-		ret = webSocket->SendBinary(alt::StringView((char*)v8Buffer.Data(), v8Buffer.ByteLength()));
+		auto v8Buffer = v8ArrayBufferView->Buffer()->GetBackingStore();
+		ret = webSocket->SendBinary(alt::StringView((char*)v8Buffer->Data(), v8Buffer->ByteLength()));
 	}
 	else if (info[0]->IsArrayBuffer()) 
 	{
 		V8_ARG_TO_ARRAY_BUFFER(1, v8ArrayBuffer);
-		auto v8Buffer = v8ArrayBuffer->GetContents();
-		ret = webSocket->SendBinary(alt::StringView((char*)v8Buffer.Data(), v8Buffer.ByteLength()));
+		auto v8Buffer = v8ArrayBuffer->GetBackingStore();
+		ret = webSocket->SendBinary(alt::StringView((char*)v8Buffer->Data(), v8Buffer->ByteLength()));
 	}
 	else 
 	{
@@ -94,7 +94,7 @@ static void Send(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 static void Stop(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-	V8_GET_ISOLATE(info);
+	V8_GET_ISOLATE();
 
 	V8_GET_THIS_BASE_OBJECT(webSocket, alt::IWebSocketClient);
 
@@ -182,7 +182,7 @@ static void GetEventListeners(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 static void URLGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-	V8_GET_ISOLATE(info);
+	V8_GET_ISOLATE();
 
 	V8_GET_THIS_BASE_OBJECT(webSocket, alt::IWebSocketClient);
 
@@ -202,7 +202,7 @@ static void URLSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value
 
 static void ReadyStateGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-	V8_GET_ISOLATE(info);
+	V8_GET_ISOLATE();
 
 	V8_GET_THIS_BASE_OBJECT(webSocket, alt::IWebSocketClient);
 
@@ -222,7 +222,7 @@ static void AutoReconnectSetter(v8::Local<v8::String> property, v8::Local<v8::Va
 
 static void AutoReconnectGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-	V8_GET_ISOLATE(info);
+	V8_GET_ISOLATE();
 
 	V8_GET_THIS_BASE_OBJECT(webSocket, alt::IWebSocketClient);
 
@@ -242,7 +242,7 @@ static void PerMessageDeflateSetter(v8::Local<v8::String> property, v8::Local<v8
 
 static void PerMessageDeflateGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-	V8_GET_ISOLATE(info);
+	V8_GET_ISOLATE();
 
 	V8_GET_THIS_BASE_OBJECT(webSocket, alt::IWebSocketClient);
 
@@ -262,7 +262,7 @@ static void PingIntervalSetter(v8::Local<v8::String> property, v8::Local<v8::Val
 
 static void PingIntervalGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-	V8_GET_ISOLATE(info);
+	V8_GET_ISOLATE();
 
 	V8_GET_THIS_BASE_OBJECT(webSocket, alt::IWebSocketClient);
 

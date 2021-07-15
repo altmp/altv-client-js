@@ -96,6 +96,11 @@ V8_EVENT_HANDLER keyboardEvent(
 			return resource->GetLocalHandlers("keyup");
 		else if (ev->GetKeyState() == alt::CKeyboardEvent::KeyState::DOWN)
 			return resource->GetLocalHandlers("keydown");
+		else
+		{
+			Log::Error << "Unhandled keystate in keyboard event handler: " << (int)ev->GetKeyState() << Log::Endl;
+			return std::vector<V8::EventCallback*>();
+		}
 	},
 	[](V8ResourceImpl* resource, const CEvent* e, std::vector<v8::Local<v8::Value>>& args) {
 		auto ev = static_cast<const alt::CKeyboardEvent*>(e);
@@ -115,17 +120,10 @@ V8_LOCAL_EVENT_HANDLER connectionComplete(
 	EventType::CONNECTION_COMPLETE,
 	"connectionComplete",
 	[](V8ResourceImpl *resource, const alt::CEvent *e, std::vector<v8::Local<v8::Value>> &args) {
-        CV8ScriptRuntime* runtime = CV8ScriptRuntime::instance;
-		if(!runtime->resourcesLoaded) 
-        {
-            runtime->resourcesLoaded = true;
-            static_cast<CV8ResourceImpl*>(resource)->ProcessDynamicImports();
-        }
 	});
 
 V8_LOCAL_EVENT_HANDLER disconnect(
 	EventType::DISCONNECT_EVENT,
 	"disconnect",
 	[](V8ResourceImpl *resource, const alt::CEvent *e, std::vector<v8::Local<v8::Value>> &args) {
-        CV8ScriptRuntime::instance->resourcesLoaded = false;
 	});

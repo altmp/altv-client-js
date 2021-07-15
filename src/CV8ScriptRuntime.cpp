@@ -5,12 +5,8 @@
 #include "helpers/V8Module.h"
 #include "events/Events.h"
 
-CV8ScriptRuntime* CV8ScriptRuntime::instance = nullptr;
-
 CV8ScriptRuntime::CV8ScriptRuntime()
 {
-	instance = this;
-
 	platform = v8::platform::NewDefaultPlatform();
 	v8::V8::InitializePlatform(platform.get());
 	v8::V8::Initialize();
@@ -22,10 +18,26 @@ CV8ScriptRuntime::CV8ScriptRuntime()
 		Log::Error << "[V8] " << location << ": " << message << Log::Endl;
 	});
 
+	isolate->SetOOMErrorHandler([](const char* location, bool isHeap) {
+		if(!isHeap) return;
+		Log::Error << "[V8] " << location << ": Heap out of memory. Forward this to the server developers." << Log::Endl;
+		Log::Error << "[V8] The current heap limit can be shown with the 'heap' console command. Consider increasing your system RAM." << Log::Endl;
+	});
+
+	isolate->AddNearHeapLimitCallback([](void*, size_t current, size_t initial) {
+		Log::Warning << "[V8] The remaining V8 heap space is approaching critical levels. Forward this to the server developers." << Log::Endl;
+		Log::Warning << "[V8] Initial heap limit: " << CV8ScriptRuntime::FormatBytes(initial) << " | Current heap limit: " << CV8ScriptRuntime::FormatBytes(current) << Log::Endl;
+
+		// Increase the heap limit by 100MB if the heap limit has not exceeded 4GB
+		uint64_t currentLimitMb = (current / 1024) / 1024;
+		if(currentLimitMb < 4096) return current + (100 * 1024 * 1024);
+		else return current;
+	}, nullptr);
+
 	isolate->SetPromiseRejectCallback([](v8::PromiseRejectMessage message) {
 		v8::Isolate *isolate = v8::Isolate::GetCurrent();
 		v8::Local<v8::Value> value = message.GetValue();
-		v8::Local<v8::Context> ctx = isolate->GetEnteredContext();
+		v8::Local<v8::Context> ctx = isolate->GetEnteredOrMicrotaskContext();
 
 		CV8ResourceImpl *resource = static_cast<CV8ResourceImpl *>(V8ResourceImpl::Get(ctx));
 		if (resource)
@@ -59,7 +71,7 @@ CV8ScriptRuntime::CV8ScriptRuntime()
 		}
 	});
 
-	isolate->SetHostImportModuleDynamicallyCallback([](v8::Local<v8::Context> context, v8::Local<v8::ScriptOrModule> referrer, v8::Local<v8::String> specifier) {
+	isolate->SetHostImportModuleDynamicallyCallback([](v8::Local<v8::Context> context, v8::Local<v8::ScriptOrModule> referrer, v8::Local<v8::String> specifier, v8::Local<v8::FixedArray>) {
 		v8::Isolate* isolate = context->GetIsolate();
 
 		auto referrerVal = referrer->GetResourceName();
@@ -85,10 +97,10 @@ CV8ScriptRuntime::CV8ScriptRuntime()
 			auto resolver = presolver.Get(isolate);
 			auto specifier = pspecifier.Get(isolate);
 
-			auto ctx = resolver->CreationContext();
+			auto ctx = resolver->GetCreationContext().ToLocalChecked();
 			v8::Context::Scope ctxs(ctx);
 
-			auto mmodule = ResolveModule(ctx, specifier, referrerModule);
+			auto mmodule = ResolveModule(ctx, specifier, v8::Local<v8::FixedArray>(), referrerModule);
 			if(mmodule.IsEmpty())
 			{
 				resolver->Reject(ctx, v8::Exception::ReferenceError(V8_NEW_STRING("Could not resolve module")));
@@ -114,7 +126,7 @@ CV8ScriptRuntime::CV8ScriptRuntime()
 			});
 		};
 
-		if(instance->resourcesLoaded && resource->GetResource()->IsStarted())
+		if(Instance().resourcesLoaded && resource->GetResource()->IsStarted())
 		{
 			// instantly resolve the module
 			domodule();
@@ -125,6 +137,8 @@ CV8ScriptRuntime::CV8ScriptRuntime()
 
 		return v8::MaybeLocal<v8::Promise>(resolver->GetPromise());
 	});
+
+	isolate->SetMicrotasksPolicy(v8::MicrotasksPolicy::kExplicit);
 
 	/*{
 		v8::Locker locker(isolate);

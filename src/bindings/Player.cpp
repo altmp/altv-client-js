@@ -27,7 +27,7 @@ static void ToString(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 static void NameGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_STRING(player->GetName().CStr());
@@ -43,7 +43,7 @@ static void VehicleGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<
 
 static void TalkingGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_BOOLEAN(player->IsTalking());
@@ -51,7 +51,7 @@ static void TalkingGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<
 
 static void MicLevelGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_NUMBER(player->GetMicLevel());
@@ -74,7 +74,7 @@ static void CurrentWeaponComponentsGetter(v8::Local<v8::String>, const v8::Prope
 
 static void CurrentWeaponTintIndexGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_INT(player->GetCurrentWeaponTintIndex());
@@ -82,7 +82,7 @@ static void CurrentWeaponTintIndexGetter(v8::Local<v8::String>, const v8::Proper
 
 static void CurrentWeaponGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_UINT(player->GetCurrentWeapon());
@@ -90,7 +90,7 @@ static void CurrentWeaponGetter(v8::Local<v8::String>, const v8::PropertyCallbac
 
 static void IsJumpingGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_BOOLEAN(player->IsJumping());
@@ -98,7 +98,7 @@ static void IsJumpingGetter(v8::Local<v8::String>, const v8::PropertyCallbackInf
 
 static void IsInRagdollGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_BOOLEAN(player->IsInRagdoll());
@@ -106,7 +106,7 @@ static void IsInRagdollGetter(v8::Local<v8::String>, const v8::PropertyCallbackI
 
 static void IsAimingGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_BOOLEAN(player->IsAiming());
@@ -114,7 +114,7 @@ static void IsAimingGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo
 
 static void IsShootingGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_BOOLEAN(player->IsShooting());
@@ -122,7 +122,7 @@ static void IsShootingGetter(v8::Local<v8::String>, const v8::PropertyCallbackIn
 
 static void IsReloadingGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_BOOLEAN(player->IsReloading());
@@ -130,7 +130,7 @@ static void IsReloadingGetter(v8::Local<v8::String>, const v8::PropertyCallbackI
 
 static void ArmourGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_INT(player->GetArmour());
@@ -138,7 +138,7 @@ static void ArmourGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v
 
 static void MaxArmourGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_INT(player->GetMaxArmour());
@@ -146,7 +146,7 @@ static void MaxArmourGetter(v8::Local<v8::String>, const v8::PropertyCallbackInf
 
 static void MoveSpeedGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_NUMBER(player->GetMoveSpeed());
@@ -170,7 +170,7 @@ static void HeadRotationGetter(v8::Local<v8::String>, const v8::PropertyCallback
 
 static void SeatGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_INT(player->GetSeat());
@@ -194,7 +194,7 @@ static void EntityAimOffsetGetter(v8::Local<v8::String>, const v8::PropertyCallb
 
 static void FlashlightActiveGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_BOOLEAN(player->IsFlashlightActive());
@@ -202,7 +202,7 @@ static void FlashlightActiveGetter(v8::Local<v8::String>, const v8::PropertyCall
 
 static void HealthGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_INT(player->GetHealth());
@@ -210,7 +210,7 @@ static void HealthGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v
 
 static void MaxHealthGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_INT(player->GetMaxHealth());
@@ -218,7 +218,7 @@ static void MaxHealthGetter(v8::Local<v8::String>, const v8::PropertyCallbackInf
 
 static void IsDeadGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_BOOLEAN(player->IsDead());
@@ -230,8 +230,8 @@ static void WeaponHasComponent(const v8::FunctionCallbackInfo<v8::Value>& info)
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_CHECK_ARGS_LEN(2);
-    V8_ARG_TO_INTEGER(1, weaponHash);
-    V8_ARG_TO_INTEGER(2, componentHash);
+    V8_ARG_TO_INT(1, weaponHash);
+    V8_ARG_TO_INT(2, componentHash);
 
     V8_RETURN_BOOLEAN(player->HasWeaponComponent(weaponHash, componentHash));
 }
@@ -242,14 +242,14 @@ static void GetWeaponTintIndex(const v8::FunctionCallbackInfo<v8::Value>& info)
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_CHECK_ARGS_LEN(1);
-    V8_ARG_TO_INTEGER(1, weaponHash);
+    V8_ARG_TO_INT(1, weaponHash);
 
     V8_RETURN_INT(player->GetWeaponTintIndex(weaponHash));
 }
 
 static void GetCurrentWeapon(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_RETURN_INT(player->GetCurrentWeapon());
@@ -302,7 +302,7 @@ static void StreamedInGetter(v8::Local<v8::String> name, const v8::PropertyCallb
 {
     V8_GET_ISOLATE_CONTEXT_RESOURCE();
 
-    auto streamedIn = CV8ScriptRuntime::instance->GetStreamedInPlayers();
+    auto streamedIn = CV8ScriptRuntime::Instance().GetStreamedInPlayers();
     auto arr = v8::Array::New(isolate, streamedIn.size());
     int i = 0;
     for(auto kv : streamedIn)
@@ -325,7 +325,7 @@ static void StaticGetByScriptID(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     V8_GET_ISOLATE_CONTEXT_RESOURCE();
     V8_CHECK_ARGS_LEN(1);
-    V8_ARG_TO_INTEGER(1, scriptGuid);
+    V8_ARG_TO_INT(1, scriptGuid);
     V8_RETURN_BASE_OBJECT(alt::ICore::Instance().GetEntityByScriptGuid(scriptGuid).As<alt::IPlayer>());
 }
 
@@ -333,7 +333,7 @@ static void StaticGetByID(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     V8_GET_ISOLATE_CONTEXT_RESOURCE();
     V8_CHECK_ARGS_LEN(1);
-    V8_ARG_TO_INTEGER(1, id);
+    V8_ARG_TO_INT(1, id);
     V8_RETURN_BASE_OBJECT(alt::ICore::Instance().GetEntityByID(id).As<alt::IPlayer>());
 }
 
