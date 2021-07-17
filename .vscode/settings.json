@@ -65,6 +65,17 @@
         "xutility": "cpp",
         "deque": "cpp",
         "queue": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "condition_variable": "cpp",
+        "set": "cpp",
+        "bit": "cpp",
+        "charconv": "cpp",
+        "clocale": "cpp",
+        "format": "cpp",
+        "forward_list": "cpp",
+        "optional": "cpp",
+        "stop_token": "cpp"
     }
 }

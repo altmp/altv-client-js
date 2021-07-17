@@ -27,9 +27,14 @@ class CV8ScriptRuntime : public alt::IScriptRuntime
 	std::unordered_map<uint16_t, alt::Ref<alt::IVehicle>> streamedInVehicles;
 
 public:
-	static CV8ScriptRuntime* instance;
 
 	CV8ScriptRuntime();
+
+	static CV8ScriptRuntime& Instance()
+	{
+		static CV8ScriptRuntime instance;
+		return instance;
+	}
 
 	v8::Isolate *GetIsolate() const { return isolate; }
 
@@ -68,15 +73,15 @@ public:
 		v8::HeapStatistics heapStats;
 		isolate->GetHeapStatistics(&heapStats);
 		Log::Info << "================ Heap benchmark info =================" << Log::Endl;
-		Log::Info << "total_heap_size = " << formatBytes(heapStats.total_heap_size()) << Log::Endl;
-		Log::Info << "total_heap_size_executable = " << formatBytes(heapStats.total_heap_size_executable()) << Log::Endl;
-		Log::Info << "total_physical_size = " << formatBytes(heapStats.total_physical_size()) << Log::Endl;
-		Log::Info << "total_available_size = " << formatBytes(heapStats.total_available_size()) << Log::Endl;
-		Log::Info << "used_heap_size = " << formatBytes(heapStats.used_heap_size()) << Log::Endl;
-		Log::Info << "heap_size_limit = " << formatBytes(heapStats.heap_size_limit()) << Log::Endl;
-		Log::Info << "malloced_memory = " << formatBytes(heapStats.malloced_memory()) << Log::Endl;
-		Log::Info << "external_memory = " << formatBytes(heapStats.external_memory()) << Log::Endl;
-		Log::Info << "peak_malloced_memory = " << formatBytes(heapStats.peak_malloced_memory()) << Log::Endl;
+		Log::Info << "total_heap_size = " << FormatBytes(heapStats.total_heap_size()) << Log::Endl;
+		Log::Info << "total_heap_size_executable = " << FormatBytes(heapStats.total_heap_size_executable()) << Log::Endl;
+		Log::Info << "total_physical_size = " << FormatBytes(heapStats.total_physical_size()) << Log::Endl;
+		Log::Info << "total_available_size = " << FormatBytes(heapStats.total_available_size()) << Log::Endl;
+		Log::Info << "used_heap_size = " << FormatBytes(heapStats.used_heap_size()) << Log::Endl;
+		Log::Info << "heap_size_limit = " << FormatBytes(heapStats.heap_size_limit()) << Log::Endl;
+		Log::Info << "malloced_memory = " << FormatBytes(heapStats.malloced_memory()) << Log::Endl;
+		Log::Info << "external_memory = " << FormatBytes(heapStats.external_memory()) << Log::Endl;
+		Log::Info << "peak_malloced_memory = " << FormatBytes(heapStats.peak_malloced_memory()) << Log::Endl;
 		Log::Info << "number_of_native_contexts = " << heapStats.number_of_native_contexts() << Log::Endl;
 		Log::Info << "number_of_detached_contexts = " << heapStats.number_of_detached_contexts() << Log::Endl;
 		Log::Info << "======================================================" << Log::Endl;
@@ -90,7 +95,7 @@ public:
 		delete create_params.array_buffer_allocator;
 	}
 
-	static v8::MaybeLocal<v8::Module> ResolveModule(v8::Local<v8::Context> ctx, v8::Local<v8::String> specifier, v8::Local<v8::Module> referrer)
+	static v8::MaybeLocal<v8::Module> ResolveModule(v8::Local<v8::Context> ctx, v8::Local<v8::String> specifier, v8::Local<v8::FixedArray>, v8::Local<v8::Module> referrer)
 	{
 		auto isolate = ctx->GetIsolate();
 		V8ResourceImpl *resource = V8ResourceImpl::Get(ctx);
@@ -110,7 +115,7 @@ public:
 		return static_cast<CV8ResourceImpl *>(resource)->ResolveModule(_specifier, referrer);
 	}
 
-	static std::string formatBytes(uint64_t bytes)
+	static std::string FormatBytes(uint64_t bytes)
 	{
 		static std::string result = "";
 		const char *sizes[5] = {"bytes", "KB", "MB", "GB", "TB"};

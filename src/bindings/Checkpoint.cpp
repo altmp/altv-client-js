@@ -9,7 +9,7 @@ static void Constructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 	V8_CHECK_CONSTRUCTOR();
 	if(info.Length() == 6)
 	{
-		V8_ARG_TO_INTEGER(1, type);
+		V8_ARG_TO_INT(1, type);
 		V8_ARG_TO_OBJECT(2, pos);
 		V8_ARG_TO_OBJECT(3, nextPos);
 		V8_ARG_TO_NUMBER(4, radius);
@@ -24,17 +24,17 @@ static void Constructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 		V8_OBJECT_GET_NUMBER(nextPos, "y", y2);
 		V8_OBJECT_GET_NUMBER(nextPos, "z", z2);
 
-		V8_OBJECT_GET_INTEGER(color, "r", r);
-		V8_OBJECT_GET_INTEGER(color, "g", g);
-		V8_OBJECT_GET_INTEGER(color, "b", b);
-		V8_OBJECT_GET_INTEGER(color, "a", a);
+		V8_OBJECT_GET_INT(color, "r", r);
+		V8_OBJECT_GET_INT(color, "g", g);
+		V8_OBJECT_GET_INT(color, "b", b);
+		V8_OBJECT_GET_INT(color, "a", a);
 
 		alt::Ref<alt::ICheckpoint> cp = alt::ICore::Instance().CreateCheckpoint(type, { x, y, z }, { x2, y2, z2 }, radius, height, { (uint8_t)r, (uint8_t)g, (uint8_t)b, (uint8_t)a });
 		V8_BIND_BASE_OBJECT(cp, "Failed to create Checkpoint");
 	}
 	else if(info.Length() == 10)
 	{
-		V8_ARG_TO_INTEGER(1, type);
+		V8_ARG_TO_INT(1, type);
 		V8_ARG_TO_NUMBER(2, x);
 		V8_ARG_TO_NUMBER(3, y);
 		V8_ARG_TO_NUMBER(4, z);
@@ -45,10 +45,10 @@ static void Constructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 		V8_ARG_TO_NUMBER(9, height);
 		V8_ARG_TO_OBJECT(10, color);
 
-		V8_OBJECT_GET_INTEGER(color, "r", r);
-		V8_OBJECT_GET_INTEGER(color, "g", g);
-		V8_OBJECT_GET_INTEGER(color, "b", b);
-		V8_OBJECT_GET_INTEGER(color, "a", a);
+		V8_OBJECT_GET_INT(color, "r", r);
+		V8_OBJECT_GET_INT(color, "g", g);
+		V8_OBJECT_GET_INT(color, "b", b);
+		V8_OBJECT_GET_INT(color, "a", a);
 
 		alt::Ref<alt::ICheckpoint> cp = alt::ICore::Instance().CreateCheckpoint(type, { x, y, z }, { x2, y2, z2 }, radius, height, { (uint8_t)r, (uint8_t)g, (uint8_t)b, (uint8_t)a });
 		V8_BIND_BASE_OBJECT(cp, "Failed to create Checkpoint");

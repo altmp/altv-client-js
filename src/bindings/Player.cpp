@@ -17,7 +17,7 @@ static void ToString(const v8::FunctionCallbackInfo<v8::Value>& info)
 	V8_GET_ISOLATE_CONTEXT();
 
     auto player = info.This();
-    V8_OBJECT_GET_INTEGER(player, "id", id);
+    V8_OBJECT_GET_INT(player, "id", id);
 	V8_OBJECT_GET_STRING(player, "name", name);
 
 	std::ostringstream ss;
@@ -47,8 +47,8 @@ static void WeaponHasComponent(const v8::FunctionCallbackInfo<v8::Value>& info)
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_CHECK_ARGS_LEN(2);
-    V8_ARG_TO_INTEGER(1, weaponHash);
-    V8_ARG_TO_INTEGER(2, componentHash);
+    V8_ARG_TO_INT(1, weaponHash);
+    V8_ARG_TO_INT(2, componentHash);
 
     V8_RETURN_BOOLEAN(player->HasWeaponComponent(weaponHash, componentHash));
 }
@@ -59,9 +59,9 @@ static void GetWeaponTintIndex(const v8::FunctionCallbackInfo<v8::Value>& info)
     V8_GET_THIS_BASE_OBJECT(player, alt::IPlayer);
 
     V8_CHECK_ARGS_LEN(1);
-    V8_ARG_TO_INTEGER(1, weaponHash);
+    V8_ARG_TO_INT(1, weaponHash);
 
-    V8_RETURN_INTEGER(player->GetWeaponTintIndex(weaponHash));
+    V8_RETURN_INT(player->GetWeaponTintIndex(weaponHash));
 }
 
 static void AllGetter(v8::Local<v8::String> name, const v8::PropertyCallbackInfo<v8::Value>& info)
@@ -75,7 +75,7 @@ static void StreamedInGetter(v8::Local<v8::String> name, const v8::PropertyCallb
 {
     V8_GET_ISOLATE_CONTEXT_RESOURCE();
 
-    auto streamedIn = CV8ScriptRuntime::instance->GetStreamedInPlayers();
+    auto streamedIn = CV8ScriptRuntime::Instance().GetStreamedInPlayers();
     auto arr = v8::Array::New(isolate, streamedIn.size());
     int i = 0;
     for(auto kv : streamedIn)
@@ -98,7 +98,7 @@ static void StaticGetByScriptID(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     V8_GET_ISOLATE_CONTEXT_RESOURCE();
     V8_CHECK_ARGS_LEN(1);
-    V8_ARG_TO_INTEGER(1, scriptGuid);
+    V8_ARG_TO_INT(1, scriptGuid);
     V8_RETURN_BASE_OBJECT(alt::ICore::Instance().GetEntityByScriptGuid(scriptGuid).As<alt::IPlayer>());
 }
 
@@ -106,7 +106,7 @@ static void StaticGetByID(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     V8_GET_ISOLATE_CONTEXT_RESOURCE();
     V8_CHECK_ARGS_LEN(1);
-    V8_ARG_TO_INTEGER(1, id);
+    V8_ARG_TO_INT(1, id);
     V8_RETURN_BASE_OBJECT(alt::ICore::Instance().GetEntityByID(id).As<alt::IPlayer>());
 }
 

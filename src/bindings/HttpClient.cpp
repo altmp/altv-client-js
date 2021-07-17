@@ -53,18 +53,18 @@ static void Get(const v8::FunctionCallbackInfo<v8::Value>& info)
     auto callback = [](alt::IHttpClient::HttpResponse response, const void* userData) {
         // TODO: NOT PERFORMANCE EFFICIENT TO LOCK HERE, RESOLVE IN NEXT TICK INSTEAD
 
-        v8::Isolate* isolate = CV8ScriptRuntime::instance->GetIsolate();
+        v8::Isolate* isolate = CV8ScriptRuntime::Instance().GetIsolate();
         v8::Locker locker(isolate);
         v8::Isolate::Scope isolateScope(isolate);
         v8::HandleScope handleScope(isolate);
 
         auto persistent = (v8::UniquePersistent<v8::Promise::Resolver>*)userData;
         auto resolver = persistent->Get(isolate);
-        auto ctx = resolver->CreationContext();
+        auto ctx = resolver->GetCreationContext().ToLocalChecked();
         {
             v8::Context::Scope ctxscope(ctx);
             V8_NEW_OBJECT(responseObj);
-            V8_OBJECT_SET_INTEGER(responseObj, "statusCode", response.statusCode);
+            V8_OBJECT_SET_INT(responseObj, "statusCode", response.statusCode);
             V8_OBJECT_SET_STRING(responseObj, "body", response.body);
             V8_NEW_OBJECT(headers);
             for(auto it = response.headers->Begin(); it; it = response.headers->Next())
@@ -72,7 +72,7 @@ static void Get(const v8::FunctionCallbackInfo<v8::Value>& info)
                 headers->Set(ctx, V8_NEW_STRING(it->GetKey().CStr()), V8_NEW_STRING(it->GetValue().As<alt::IMValueString>()->Value().CStr()));
             }
             responseObj->Set(ctx, V8_NEW_STRING("headers"), headers);
-            resolver->Resolve(resolver->CreationContext(), responseObj);
+            resolver->Resolve(resolver->GetCreationContext().ToLocalChecked(), responseObj);
         }
 
         requestPromises.remove(*persistent);
@@ -95,18 +95,18 @@ static void Head(const v8::FunctionCallbackInfo<v8::Value>& info)
     auto callback = [](alt::IHttpClient::HttpResponse response, const void* userData) {
         // TODO: NOT PERFORMANCE EFFICIENT TO LOCK HERE, RESOLVE IN NEXT TICK INSTEAD
 
-        v8::Isolate* isolate = CV8ScriptRuntime::instance->GetIsolate();
+        v8::Isolate* isolate = CV8ScriptRuntime::Instance().GetIsolate();
         v8::Locker locker(isolate);
         v8::Isolate::Scope isolateScope(isolate);
         v8::HandleScope handleScope(isolate);
 
         auto persistent = (v8::UniquePersistent<v8::Promise::Resolver>*)userData;
         auto resolver = persistent->Get(isolate);
-        auto ctx = resolver->CreationContext();
+        auto ctx = resolver->GetCreationContext().ToLocalChecked();
         {
             v8::Context::Scope ctxscope(ctx);
             V8_NEW_OBJECT(responseObj);
-            V8_OBJECT_SET_INTEGER(responseObj, "statusCode", response.statusCode);
+            V8_OBJECT_SET_INT(responseObj, "statusCode", response.statusCode);
             V8_OBJECT_SET_STRING(responseObj, "body", response.body);
             V8_NEW_OBJECT(headers);
             for(auto it = response.headers->Begin(); it; it = response.headers->Next())
@@ -114,7 +114,7 @@ static void Head(const v8::FunctionCallbackInfo<v8::Value>& info)
                 headers->Set(ctx, V8_NEW_STRING(it->GetKey().CStr()), V8_NEW_STRING(it->GetValue().As<alt::IMValueString>()->Value().CStr()));
             }
             responseObj->Set(ctx, V8_NEW_STRING("headers"), headers);
-            resolver->Resolve(resolver->CreationContext(), responseObj);
+            resolver->Resolve(resolver->GetCreationContext().ToLocalChecked(), responseObj);
         }
 
         requestPromises.remove(*persistent);
@@ -138,18 +138,18 @@ static void Post(const v8::FunctionCallbackInfo<v8::Value>& info)
     auto callback = [](alt::IHttpClient::HttpResponse response, const void* userData) {
         // TODO: NOT PERFORMANCE EFFICIENT TO LOCK HERE, RESOLVE IN NEXT TICK INSTEAD
 
-        v8::Isolate* isolate = CV8ScriptRuntime::instance->GetIsolate();
+        v8::Isolate* isolate = CV8ScriptRuntime::Instance().GetIsolate();
         v8::Locker locker(isolate);
         v8::Isolate::Scope isolateScope(isolate);
         v8::HandleScope handleScope(isolate);
 
         auto persistent = (v8::UniquePersistent<v8::Promise::Resolver>*)userData;
         auto resolver = persistent->Get(isolate);
-        auto ctx = resolver->CreationContext();
+        auto ctx = resolver->GetCreationContext().ToLocalChecked();
         {
             v8::Context::Scope ctxscope(ctx);
             V8_NEW_OBJECT(responseObj);
-            V8_OBJECT_SET_INTEGER(responseObj, "statusCode", response.statusCode);
+            V8_OBJECT_SET_INT(responseObj, "statusCode", response.statusCode);
             V8_OBJECT_SET_STRING(responseObj, "body", response.body);
             V8_NEW_OBJECT(headers);
             for(auto it = response.headers->Begin(); it; it = response.headers->Next())
@@ -157,7 +157,7 @@ static void Post(const v8::FunctionCallbackInfo<v8::Value>& info)
                 headers->Set(ctx, V8_NEW_STRING(it->GetKey().CStr()), V8_NEW_STRING(it->GetValue().As<alt::IMValueString>()->Value().CStr()));
             }
             responseObj->Set(ctx, V8_NEW_STRING("headers"), headers);
-            resolver->Resolve(resolver->CreationContext(), responseObj);
+            resolver->Resolve(resolver->GetCreationContext().ToLocalChecked(), responseObj);
         }
 
         requestPromises.remove(*persistent);
@@ -181,18 +181,18 @@ static void Put(const v8::FunctionCallbackInfo<v8::Value>& info)
     auto callback = [](alt::IHttpClient::HttpResponse response, const void* userData) {
         // TODO: NOT PERFORMANCE EFFICIENT TO LOCK HERE, RESOLVE IN NEXT TICK INSTEAD
 
-        v8::Isolate* isolate = CV8ScriptRuntime::instance->GetIsolate();
+        v8::Isolate* isolate = CV8ScriptRuntime::Instance().GetIsolate();
         v8::Locker locker(isolate);
         v8::Isolate::Scope isolateScope(isolate);
         v8::HandleScope handleScope(isolate);
 
         auto persistent = (v8::UniquePersistent<v8::Promise::Resolver>*)userData;
         auto resolver = persistent->Get(isolate);
-        auto ctx = resolver->CreationContext();
+        auto ctx = resolver->GetCreationContext().ToLocalChecked();
         {
             v8::Context::Scope ctxscope(ctx);
             V8_NEW_OBJECT(responseObj);
-            V8_OBJECT_SET_INTEGER(responseObj, "statusCode", response.statusCode);
+            V8_OBJECT_SET_INT(responseObj, "statusCode", response.statusCode);
             V8_OBJECT_SET_STRING(responseObj, "body", response.body);
             V8_NEW_OBJECT(headers);
             for(auto it = response.headers->Begin(); it; it = response.headers->Next())
@@ -200,7 +200,7 @@ static void Put(const v8::FunctionCallbackInfo<v8::Value>& info)
                 headers->Set(ctx, V8_NEW_STRING(it->GetKey().CStr()), V8_NEW_STRING(it->GetValue().As<alt::IMValueString>()->Value().CStr()));
             }
             responseObj->Set(ctx, V8_NEW_STRING("headers"), headers);
-            resolver->Resolve(resolver->CreationContext(), responseObj);
+            resolver->Resolve(resolver->GetCreationContext().ToLocalChecked(), responseObj);
         }
 
         requestPromises.remove(*persistent);
@@ -224,18 +224,18 @@ static void Delete(const v8::FunctionCallbackInfo<v8::Value>& info)
     auto callback = [](alt::IHttpClient::HttpResponse response, const void* userData) {
         // TODO: NOT PERFORMANCE EFFICIENT TO LOCK HERE, RESOLVE IN NEXT TICK INSTEAD
 
-        v8::Isolate* isolate = CV8ScriptRuntime::instance->GetIsolate();
+        v8::Isolate* isolate = CV8ScriptRuntime::Instance().GetIsolate();
         v8::Locker locker(isolate);
         v8::Isolate::Scope isolateScope(isolate);
         v8::HandleScope handleScope(isolate);
 
         auto persistent = (v8::UniquePersistent<v8::Promise::Resolver>*)userData;
         auto resolver = persistent->Get(isolate);
-        auto ctx = resolver->CreationContext();
+        auto ctx = resolver->GetCreationContext().ToLocalChecked();
         {
             v8::Context::Scope ctxscope(ctx);
             V8_NEW_OBJECT(responseObj);
-            V8_OBJECT_SET_INTEGER(responseObj, "statusCode", response.statusCode);
+            V8_OBJECT_SET_INT(responseObj, "statusCode", response.statusCode);
             V8_OBJECT_SET_STRING(responseObj, "body", response.body);
             V8_NEW_OBJECT(headers);
             for(auto it = response.headers->Begin(); it; it = response.headers->Next())
@@ -243,7 +243,7 @@ static void Delete(const v8::FunctionCallbackInfo<v8::Value>& info)
                 headers->Set(ctx, V8_NEW_STRING(it->GetKey().CStr()), V8_NEW_STRING(it->GetValue().As<alt::IMValueString>()->Value().CStr()));
             }
             responseObj->Set(ctx, V8_NEW_STRING("headers"), headers);
-            resolver->Resolve(resolver->CreationContext(), responseObj);
+            resolver->Resolve(resolver->GetCreationContext().ToLocalChecked(), responseObj);
         }
 
         requestPromises.remove(*persistent);
@@ -267,18 +267,18 @@ static void Connect(const v8::FunctionCallbackInfo<v8::Value>& info)
     auto callback = [](alt::IHttpClient::HttpResponse response, const void* userData) {
         // TODO: NOT PERFORMANCE EFFICIENT TO LOCK HERE, RESOLVE IN NEXT TICK INSTEAD
 
-        v8::Isolate* isolate = CV8ScriptRuntime::instance->GetIsolate();
+        v8::Isolate* isolate = CV8ScriptRuntime::Instance().GetIsolate();
         v8::Locker locker(isolate);
         v8::Isolate::Scope isolateScope(isolate);
         v8::HandleScope handleScope(isolate);
 
         auto persistent = (v8::UniquePersistent<v8::Promise::Resolver>*)userData;
         auto resolver = persistent->Get(isolate);
-        auto ctx = resolver->CreationContext();
+        auto ctx = resolver->GetCreationContext().ToLocalChecked();
         {
             v8::Context::Scope ctxscope(ctx);
             V8_NEW_OBJECT(responseObj);
-            V8_OBJECT_SET_INTEGER(responseObj, "statusCode", response.statusCode);
+            V8_OBJECT_SET_INT(responseObj, "statusCode", response.statusCode);
             V8_OBJECT_SET_STRING(responseObj, "body", response.body);
             V8_NEW_OBJECT(headers);
             for(auto it = response.headers->Begin(); it; it = response.headers->Next())
@@ -286,7 +286,7 @@ static void Connect(const v8::FunctionCallbackInfo<v8::Value>& info)
                 headers->Set(ctx, V8_NEW_STRING(it->GetKey().CStr()), V8_NEW_STRING(it->GetValue().As<alt::IMValueString>()->Value().CStr()));
             }
             responseObj->Set(ctx, V8_NEW_STRING("headers"), headers);
-            resolver->Resolve(resolver->CreationContext(), responseObj);
+            resolver->Resolve(resolver->GetCreationContext().ToLocalChecked(), responseObj);
         }
 
         requestPromises.remove(*persistent);
@@ -310,18 +310,18 @@ static void Options(const v8::FunctionCallbackInfo<v8::Value>& info)
     auto callback = [](alt::IHttpClient::HttpResponse response, const void* userData) {
         // TODO: NOT PERFORMANCE EFFICIENT TO LOCK HERE, RESOLVE IN NEXT TICK INSTEAD
 
-        v8::Isolate* isolate = CV8ScriptRuntime::instance->GetIsolate();
+        v8::Isolate* isolate = CV8ScriptRuntime::Instance().GetIsolate();
         v8::Locker locker(isolate);
         v8::Isolate::Scope isolateScope(isolate);
         v8::HandleScope handleScope(isolate);
 
         auto persistent = (v8::UniquePersistent<v8::Promise::Resolver>*)userData;
         auto resolver = persistent->Get(isolate);
-        auto ctx = resolver->CreationContext();
+        auto ctx = resolver->GetCreationContext().ToLocalChecked();
         {
             v8::Context::Scope ctxscope(ctx);
             V8_NEW_OBJECT(responseObj);
-            V8_OBJECT_SET_INTEGER(responseObj, "statusCode", response.statusCode);
+            V8_OBJECT_SET_INT(responseObj, "statusCode", response.statusCode);
             V8_OBJECT_SET_STRING(responseObj, "body", response.body);
             V8_NEW_OBJECT(headers);
             for(auto it = response.headers->Begin(); it; it = response.headers->Next())
@@ -329,7 +329,7 @@ static void Options(const v8::FunctionCallbackInfo<v8::Value>& info)
                 headers->Set(ctx, V8_NEW_STRING(it->GetKey().CStr()), V8_NEW_STRING(it->GetValue().As<alt::IMValueString>()->Value().CStr()));
             }
             responseObj->Set(ctx, V8_NEW_STRING("headers"), headers);
-            resolver->Resolve(resolver->CreationContext(), responseObj);
+            resolver->Resolve(resolver->GetCreationContext().ToLocalChecked(), responseObj);
         }
 
         requestPromises.remove(*persistent);
@@ -353,18 +353,18 @@ static void Trace(const v8::FunctionCallbackInfo<v8::Value>& info)
     auto callback = [](alt::IHttpClient::HttpResponse response, const void* userData) {
         // TODO: NOT PERFORMANCE EFFICIENT TO LOCK HERE, RESOLVE IN NEXT TICK INSTEAD
 
-        v8::Isolate* isolate = CV8ScriptRuntime::instance->GetIsolate();
+        v8::Isolate* isolate = CV8ScriptRuntime::Instance().GetIsolate();
         v8::Locker locker(isolate);
         v8::Isolate::Scope isolateScope(isolate);
         v8::HandleScope handleScope(isolate);
 
         auto persistent = (v8::UniquePersistent<v8::Promise::Resolver>*)userData;
         auto resolver = persistent->Get(isolate);
-        auto ctx = resolver->CreationContext();
+        auto ctx = resolver->GetCreationContext().ToLocalChecked();
         {
             v8::Context::Scope ctxscope(ctx);
             V8_NEW_OBJECT(responseObj);
-            V8_OBJECT_SET_INTEGER(responseObj, "statusCode", response.statusCode);
+            V8_OBJECT_SET_INT(responseObj, "statusCode", response.statusCode);
             V8_OBJECT_SET_STRING(responseObj, "body", response.body);
             V8_NEW_OBJECT(headers);
             for(auto it = response.headers->Begin(); it; it = response.headers->Next())
@@ -372,7 +372,7 @@ static void Trace(const v8::FunctionCallbackInfo<v8::Value>& info)
                 headers->Set(ctx, V8_NEW_STRING(it->GetKey().CStr()), V8_NEW_STRING(it->GetValue().As<alt::IMValueString>()->Value().CStr()));
             }
             responseObj->Set(ctx, V8_NEW_STRING("headers"), headers);
-            resolver->Resolve(resolver->CreationContext(), responseObj);
+            resolver->Resolve(resolver->GetCreationContext().ToLocalChecked(), responseObj);
         }
 
         requestPromises.remove(*persistent);
@@ -396,18 +396,18 @@ static void Patch(const v8::FunctionCallbackInfo<v8::Value>& info)
     auto callback = [](alt::IHttpClient::HttpResponse response, const void* userData) {
         // TODO: NOT PERFORMANCE EFFICIENT TO LOCK HERE, RESOLVE IN NEXT TICK INSTEAD
 
-        v8::Isolate* isolate = CV8ScriptRuntime::instance->GetIsolate();
+        v8::Isolate* isolate = CV8ScriptRuntime::Instance().GetIsolate();
         v8::Locker locker(isolate);
         v8::Isolate::Scope isolateScope(isolate);
         v8::HandleScope handleScope(isolate);
 
         auto persistent = (v8::UniquePersistent<v8::Promise::Resolver>*)userData;
         auto resolver = persistent->Get(isolate);
-        auto ctx = resolver->CreationContext();
+        auto ctx = resolver->GetCreationContext().ToLocalChecked();
         {
             v8::Context::Scope ctxscope(ctx);
             V8_NEW_OBJECT(responseObj);
-            V8_OBJECT_SET_INTEGER(responseObj, "statusCode", response.statusCode);
+            V8_OBJECT_SET_INT(responseObj, "statusCode", response.statusCode);
             V8_OBJECT_SET_STRING(responseObj, "body", response.body);
             V8_NEW_OBJECT(headers);
             for(auto it = response.headers->Begin(); it; it = response.headers->Next())
@@ -415,7 +415,7 @@ static void Patch(const v8::FunctionCallbackInfo<v8::Value>& info)
                 headers->Set(ctx, V8_NEW_STRING(it->GetKey().CStr()), V8_NEW_STRING(it->GetValue().As<alt::IMValueString>()->Value().CStr()));
             }
             responseObj->Set(ctx, V8_NEW_STRING("headers"), headers);
-            resolver->Resolve(resolver->CreationContext(), responseObj);
+            resolver->Resolve(resolver->GetCreationContext().ToLocalChecked(), responseObj);
         }
 
         requestPromises.remove(*persistent);

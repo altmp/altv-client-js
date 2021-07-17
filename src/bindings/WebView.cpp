@@ -97,6 +97,27 @@ static void GetEventListeners(const v8::FunctionCallbackInfo<v8::Value>& info)
 	V8_RETURN(array);
 }
 
+static void FocusedGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value> &info)
+{
+	V8_GET_ISOLATE();
+
+	V8_GET_THIS_BASE_OBJECT(view, alt::IWebView);
+
+	V8_RETURN_BOOLEAN(view->IsFocused());
+}
+
+static void FocusedSetter(v8::Local<v8::String>, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &info)
+{
+	V8_GET_ISOLATE_CONTEXT();
+
+	V8_GET_THIS_BASE_OBJECT(view, alt::IWebView);
+
+	V8_TO_BOOLEAN(value, shouldBeFocused);
+
+	if(shouldBeFocused) view->Focus();
+	else view->Unfocus();
+}
+
 static void Constructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
 	V8_GET_ISOLATE_CONTEXT_RESOURCE();
@@ -105,7 +126,7 @@ static void Constructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 	V8_ARG_TO_STRING(1, url);
 
-	alt::IResource* altres = V8ResourceImpl::GetResource(isolate->GetEnteredContext());
+	alt::IResource* altres = V8ResourceImpl::GetResource(isolate->GetEnteredOrMicrotaskContext());
 	V8_CHECK(altres, "invalid resource");
 
 	alt::Ref<IWebView> view = nullptr;
@@ -116,11 +137,11 @@ static void Constructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 		V8_ARG_TO_OBJECT(3, pos);
 		V8_ARG_TO_OBJECT(4, size);
 
-		V8_OBJECT_GET_INTEGER(pos, "x", posX);
-		V8_OBJECT_GET_INTEGER(pos, "y", posY);
+		V8_OBJECT_GET_INT(pos, "x", posX);
+		V8_OBJECT_GET_INT(pos, "y", posY);
 
-		V8_OBJECT_GET_INTEGER(size, "x", sizeX);
-		V8_OBJECT_GET_INTEGER(size, "y", sizeY);
+		V8_OBJECT_GET_INT(size, "x", sizeX);
+		V8_OBJECT_GET_INT(size, "y", sizeY);
 
 		view = alt::ICore::Instance().CreateWebView(altres, url, { posX, posY }, { sizeX, sizeY }, true, isOverlayBool);
 	}
@@ -129,17 +150,17 @@ static void Constructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 		V8_ARG_TO_OBJECT(2, pos);
 		V8_ARG_TO_OBJECT(3, size);
 
-		V8_OBJECT_GET_INTEGER(pos, "x", posX);
-		V8_OBJECT_GET_INTEGER(pos, "y", posY);
+		V8_OBJECT_GET_INT(pos, "x", posX);
+		V8_OBJECT_GET_INT(pos, "y", posY);
 
-		V8_OBJECT_GET_INTEGER(size, "x", sizeX);
-		V8_OBJECT_GET_INTEGER(size, "y", sizeY);
+		V8_OBJECT_GET_INT(size, "x", sizeX);
+		V8_OBJECT_GET_INT(size, "y", sizeY);
 
 		view = alt::ICore::Instance().CreateWebView(altres, url, { posX, posY }, { sizeX, sizeY }, true, false);
 	}
 	else if (info.Length() == 3)
 	{
-		V8_ARG_TO_INTEGER(2, drawableHash);
+		V8_ARG_TO_INT(2, drawableHash);
 		V8_ARG_TO_STRING(3, targetTextureStr);
 
 		auto texture = alt::ICore::Instance().GetTextureFromDrawable(drawableHash, targetTextureStr);
@@ -152,8 +173,8 @@ static void Constructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 	{
 		V8_ARG_TO_OBJECT(2, pos);
 
-		V8_OBJECT_GET_INTEGER(pos, "x", posX);
-		V8_OBJECT_GET_INTEGER(pos, "y", posY);
+		V8_OBJECT_GET_INT(pos, "x", posX);
+		V8_OBJECT_GET_INT(pos, "y", posY);
 
 		view = alt::ICore::Instance().CreateWebView(altres, url, { posX, posY }, { 0, 0 }, true, false);
 	}
@@ -179,6 +200,9 @@ extern V8Class v8WebView("WebView", v8BaseObject, &Constructor,	[](v8::Local<v8:
 
 	V8::SetAccessor<IWebView, bool, &IWebView::IsVisible, &IWebView::SetVisible>(isolate, tpl, "isVisible");
 	V8::SetAccessor<IWebView, StringView, &IWebView::GetUrl, &IWebView::SetUrl>(isolate, tpl, "url");
+	V8::SetAccessor<IWebView, bool, &IWebView::IsOverlay>(isolate, tpl, "isOverlay");
+	V8::SetAccessor<IWebView, bool, &IWebView::IsReady>(isolate, tpl, "isReady");
+	V8::SetAccessor(isolate, tpl, "focused", &FocusedGetter, &FocusedSetter);
 
 	V8::SetMethod(isolate, tpl, "on", &On);
 	V8::SetMethod(isolate, tpl, "once", &Once);

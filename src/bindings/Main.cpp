@@ -86,7 +86,7 @@ static void EmitServer(const v8::FunctionCallbackInfo<v8::Value> &info)
 
 static void GameControlsEnabled(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
-	V8_GET_ISOLATE(info);
+	V8_GET_ISOLATE();
 	V8_RETURN_BOOLEAN(alt::ICore::Instance().AreControlsEnabled());
 }
 
@@ -147,8 +147,8 @@ static void SetCursorPos(const v8::FunctionCallbackInfo<v8::Value> &info)
 
 	V8_CHECK_ARGS_LEN(1);
 	V8_ARG_TO_OBJECT(1, pos);
-	V8_OBJECT_GET_INTEGER(pos, "x", x);
-	V8_OBJECT_GET_INTEGER(pos, "y", y);
+	V8_OBJECT_GET_INT(pos, "x", x);
+	V8_OBJECT_GET_INT(pos, "y", y);
 
 	ICore::Instance().SetCursorPosition({ x, y });
 }
@@ -158,7 +158,7 @@ static void IsTextureExistInArchetype(const v8::FunctionCallbackInfo<v8::Value> 
 	V8_GET_ISOLATE_CONTEXT();
 
 	V8_CHECK_ARGS_LEN(2);
-	V8_ARG_TO_INTEGER(1, modelHash);
+	V8_ARG_TO_INT(1, modelHash);
 	V8_ARG_TO_STRING(2, modelName);
 
 	V8_RETURN_BOOLEAN(nullptr != ICore::Instance().GetTextureFromDrawable(modelHash, modelName));
@@ -261,9 +261,9 @@ static void GetGxtText(const v8::FunctionCallbackInfo<v8::Value> &info)
 
 static void GetMsPerGameMinute(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
-	V8_GET_ISOLATE(info);
+	V8_GET_ISOLATE();
 
-	V8_RETURN_INTEGER(ICore::Instance().GetMsPerGameMinute());
+	V8_RETURN_INT(ICore::Instance().GetMsPerGameMinute());
 }
 
 static void SetMsPerGameMinute(const v8::FunctionCallbackInfo<v8::Value> &info)
@@ -271,7 +271,7 @@ static void SetMsPerGameMinute(const v8::FunctionCallbackInfo<v8::Value> &info)
 	V8_GET_ISOLATE_CONTEXT();
 
 	V8_CHECK_ARGS_LEN(1);
-	V8_ARG_TO_INTEGER(1, ms);
+	V8_ARG_TO_INT(1, ms);
 
 	ICore::Instance().SetMsPerGameMinute(ms);
 }
@@ -296,31 +296,26 @@ static void GetLocale(const v8::FunctionCallbackInfo<v8::Value> &info)
 static void SetWeatherCycle(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
 	V8_GET_ISOLATE_CONTEXT();
+	V8_CHECK_ARGS_LEN(2);
 
-	V8_CHECK(info.Length() == 2, "2 args expected");
-	V8_CHECK(info[0]->IsArray(), "weathers must be an array");
-	V8_CHECK(info[1]->IsArray(), "timeMultipliers must be an array");
+	V8_ARG_TO_ARRAY(1, weathers);
+	V8_ARG_TO_ARRAY(2, multipliers);
 
-	v8::Local<v8::Array> weathers = info[0].As<v8::Array>();
-	v8::Local<v8::Array> multipliers = info[1].As<v8::Array>();
-
-	V8_CHECK(weathers->Length() <= 256, "weathers count must be <= 256");
-	V8_CHECK(multipliers->Length() <= 256, "multipliers count must be <= 256");
-	V8_CHECK(weathers->Length() == multipliers->Length(), "weathers count and multipliers count must be the same");
+	V8_CHECK(weathers->Length() < 256, "Weathers array size must be <= 255");
+	V8_CHECK(multipliers->Length() < 256, "Multipliers array size must be <= 255");
+	V8_CHECK(weathers->Length() == multipliers->Length(), "Weathers and multipliers array has to be the same size");
 
 	Array<uint8_t> weathersVec;
 	Array<uint8_t> multipliersVec;
 
 	for (int i = 0; i < weathers->Length(); ++i)
 	{
-		v8::Local<v8::Value> weatherVal = weathers->Get(ctx, i).ToLocalChecked();
-		uint32_t weatherNum = weatherVal->ToUint32(ctx).ToLocalChecked()->Value();
+		V8_TO_INTEGER(weathers->Get(ctx, i).ToLocalChecked(), weatherNum);
 		V8_CHECK(weatherNum >= 0 && weatherNum <= 14, "weather ids must be >= 0 && <= 14");
 		weathersVec.Push(weatherNum);
 
-		v8::Local<v8::Value> multiplierVal = multipliers->Get(ctx, i).ToLocalChecked();
-		uint32_t multiplierNum = multiplierVal->ToUint32(ctx).ToLocalChecked()->Value();
-		V8_CHECK(multiplierNum > 0 && multiplierNum <= 720, "multipliers must be > 0 && <= 720");
+		V8_TO_INTEGER(multipliers->Get(ctx, i).ToLocalChecked(), multiplierNum);
+		V8_CHECK(multiplierNum > 0 && multiplierNum < 256, "multipliers must be > 0 && <= 255");
 		multipliersVec.Push(multiplierNum);
 	}
 
@@ -329,7 +324,7 @@ static void SetWeatherCycle(const v8::FunctionCallbackInfo<v8::Value> &info)
 
 static void SetWeatherSyncActive(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
-	V8_GET_ISOLATE(info);
+	V8_GET_ISOLATE();
 
 	V8_CHECK_ARGS_LEN(1);
 	V8_ARG_TO_BOOLEAN(1, isActive);
@@ -351,7 +346,7 @@ static void SetCharStat(const v8::FunctionCallbackInfo<v8::Value> &info)
 
 	if (!strcmp(targetStat->GetStatType(), "INT"))
 	{
-		V8_ARG_TO_INTEGER(2, value);
+		V8_ARG_TO_INT(2, value);
 		targetStat->SetInt32Value(value);
 		V8_RETURN_BOOLEAN(true);
 		return;
@@ -442,7 +437,7 @@ static void GetCharStat(const v8::FunctionCallbackInfo<v8::Value> &info)
 
 	if (!strcmp(targetStat->GetStatType(), "INT"))
 	{
-		V8_RETURN_INTEGER(targetStat->GetInt32Value());
+		V8_RETURN_INT(targetStat->GetInt32Value());
 		return;
 	}
 	else if (!strcmp(targetStat->GetStatType(), "INT64"))
@@ -452,7 +447,7 @@ static void GetCharStat(const v8::FunctionCallbackInfo<v8::Value> &info)
 	}
 	else if (!strcmp(targetStat->GetStatType(), "TEXTLABEL"))
 	{
-		V8_RETURN_INTEGER(targetStat->GetInt32Value());
+		V8_RETURN_INT(targetStat->GetInt32Value());
 		return;
 	}
 	else if (!strcmp(targetStat->GetStatType(), "FLOAT"))
@@ -472,17 +467,17 @@ static void GetCharStat(const v8::FunctionCallbackInfo<v8::Value> &info)
 	}
 	else if (!strcmp(targetStat->GetStatType(), "UINT8"))
 	{
-		V8_RETURN_UINTEGER(targetStat->GetUInt8Value());
+		V8_RETURN_UINT(targetStat->GetUInt8Value());
 		return;
 	}
 	else if (!strcmp(targetStat->GetStatType(), "UINT16"))
 	{
-		V8_RETURN_UINTEGER(targetStat->GetUInt16Value());
+		V8_RETURN_UINT(targetStat->GetUInt16Value());
 		return;
 	}
 	else if (!strcmp(targetStat->GetStatType(), "UINT32"))
 	{
-		V8_RETURN_UINTEGER(targetStat->GetUInt32Value());
+		V8_RETURN_UINT(targetStat->GetUInt32Value());
 		return;
 	}
 	else if (
@@ -516,13 +511,13 @@ static void ResetCharStat(const v8::FunctionCallbackInfo<v8::Value> &info)
 
 static void IsMenuOpen(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
-	V8_GET_ISOLATE(info);
+	V8_GET_ISOLATE();
 	V8_RETURN_BOOLEAN(ICore::Instance().IsMenuOpen());
 }
 
 static void IsConsoleOpen(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
-	V8_GET_ISOLATE(info);
+	V8_GET_ISOLATE();
 	V8_RETURN_BOOLEAN(ICore::Instance().IsConsoleOpen());
 }
 
@@ -531,7 +526,7 @@ static void IsKeyDown(const v8::FunctionCallbackInfo<v8::Value> &info)
 	V8_GET_ISOLATE_CONTEXT();
 
 	V8_CHECK_ARGS_LEN(1);
-	V8_ARG_TO_INTEGER(1, keycode);
+	V8_ARG_TO_INT(1, keycode);
 
 	V8_RETURN_BOOLEAN(alt::ICore::Instance().GetKeyState(keycode).IsDown());
 }
@@ -541,7 +536,7 @@ static void IsKeyToggled(const v8::FunctionCallbackInfo<v8::Value> &info)
 	V8_GET_ISOLATE_CONTEXT();
 
 	V8_CHECK_ARGS_LEN(1);
-	V8_ARG_TO_INTEGER(1, keycode);
+	V8_ARG_TO_INT(1, keycode);
 
 	V8_RETURN_BOOLEAN(alt::ICore::Instance().GetKeyState(keycode).IsToggled());
 }
@@ -608,7 +603,7 @@ static void UnloadYtyp(const v8::FunctionCallbackInfo<v8::Value>& info)
 // #endif
 
 // 	V8_CHECK_ARGS_LEN(1);
-// 	V8_ARG_TO_INTEGER(1, id);
+// 	V8_ARG_TO_INT(1, id);
 
 // 	::CEntity *addr = funcs::GetEntityFromScriptID<::CEntity *>(id);
 
@@ -624,7 +619,7 @@ static void SetAngularVelocity(const v8::FunctionCallbackInfo<v8::Value> &info)
 	V8_GET_ISOLATE_CONTEXT();
  	V8_CHECK_ARGS_LEN(4);
 
-	V8_ARG_TO_INTEGER(1, id);
+	V8_ARG_TO_INT(1, id);
  	V8_ARG_TO_NUMBER(2, x);
  	V8_ARG_TO_NUMBER(3, y);
  	V8_ARG_TO_NUMBER(4, z);
@@ -637,14 +632,14 @@ static void GetPermissionState(const v8::FunctionCallbackInfo<v8::Value> &info)
 	V8_GET_ISOLATE_CONTEXT();
 
 	V8_CHECK_ARGS_LEN(1);
-	V8_ARG_TO_INTEGER(1, permnum);
+	V8_ARG_TO_INT(1, permnum);
 
-	V8_RETURN_INTEGER((uint8_t)alt::ICore::Instance().GetPermissionState((alt::Permission)permnum));
+	V8_RETURN_INT((uint8_t)alt::ICore::Instance().GetPermissionState((alt::Permission)permnum));
 }
 
 static void IsInStreamerMode(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
-	V8_GET_ISOLATE(info);
+	V8_GET_ISOLATE();
 
 	V8_RETURN_BOOLEAN(alt::ICore::Instance().IsInStreamerMode());
 }
@@ -665,17 +660,17 @@ static void TakeScreenshot(const v8::FunctionCallbackInfo<v8::Value> &info)
 	api.TakeScreenshot([](alt::StringView base64, const void *userData) {
 		// TODO: NOT PERFORMANCE EFFICIENT TO LOCK HERE, RESOLVE IN NEXT TICK INSTEAD
 
-		v8::Isolate *isolate = CV8ScriptRuntime::instance->GetIsolate();
+		v8::Isolate *isolate = CV8ScriptRuntime::Instance().GetIsolate();
 		v8::Locker locker(isolate);
 		v8::Isolate::Scope isolateScope(isolate);
 		v8::HandleScope handleScope(isolate);
 
 		auto persistent = (v8::UniquePersistent<v8::Promise::Resolver> *)userData;
 		auto resolver = persistent->Get(isolate);
-		auto ctx = resolver->CreationContext();
+		auto ctx = resolver->GetCreationContext().ToLocalChecked();
 		{
 			v8::Context::Scope ctxscope(ctx);
-			resolver->Resolve(resolver->CreationContext(), v8::String::NewFromUtf8(isolate, base64.CStr()).ToLocalChecked());
+			resolver->Resolve(resolver->GetCreationContext().ToLocalChecked(), v8::String::NewFromUtf8(isolate, base64.CStr()).ToLocalChecked());
 		}
 
 		promises.remove(*persistent);
@@ -700,17 +695,17 @@ static void TakeScreenshotGameOnly(const v8::FunctionCallbackInfo<v8::Value> &in
 	api.TakeScreenshotGameOnly([](alt::StringView base64, const void *userData) {
 		// TODO: NOT PERFORMANCE EFFICIENT TO LOCK HERE, RESOLVE IN NEXT TICK INSTEAD
 
-		v8::Isolate *isolate = CV8ScriptRuntime::instance->GetIsolate();
+		v8::Isolate *isolate = CV8ScriptRuntime::Instance().GetIsolate();
 		v8::Locker locker(isolate);
 		v8::Isolate::Scope isolateScope(isolate);
 		v8::HandleScope handleScope(isolate);
 
 		auto persistent = (v8::UniquePersistent<v8::Promise::Resolver> *)userData;
 		auto resolver = persistent->Get(isolate);
-		auto ctx = resolver->CreationContext();
+		auto ctx = resolver->GetCreationContext().ToLocalChecked();
 		{
 			v8::Context::Scope ctxscope(ctx);
-			resolver->Resolve(resolver->CreationContext(), v8::String::NewFromUtf8(isolate, base64.CStr()).ToLocalChecked());
+			resolver->Resolve(resolver->GetCreationContext().ToLocalChecked(), v8::String::NewFromUtf8(isolate, base64.CStr()).ToLocalChecked());
 		}
 
 		promises.remove(*persistent);
@@ -791,6 +786,56 @@ static void GetHeadshotBase64(const v8::FunctionCallbackInfo<v8::Value>& info)
 	V8_RETURN_STRING(alt::ICore::Instance().HeadshotToBase64(id).CStr());
 }
 
+static void SetPedDlcClothes(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+	V8_GET_ISOLATE_CONTEXT();
+	V8_CHECK_ARGS_LEN2(5, 6);
+
+	V8_ARG_TO_INT(1, scriptId);
+	V8_ARG_TO_UINT32(2, dlc);
+	V8_ARG_TO_INT(3, component);
+	V8_ARG_TO_INT(4, drawable);
+	V8_ARG_TO_INT(5, texture);
+	
+	uint8_t palette;
+	if(info.Length() == 5)
+	{
+		palette = 2;
+	}
+	else if(info.Length() == 6)
+	{
+		V8_ARG_TO_INT(6, paletteArg);
+		palette = paletteArg;
+	}
+
+	alt::ICore::Instance().SetDlcClothes(scriptId, component, drawable, texture, palette, dlc);
+}
+
+static void SetPedDlcProps(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+	V8_GET_ISOLATE_CONTEXT();
+	V8_CHECK_ARGS_LEN(5);
+
+	V8_ARG_TO_INT(1, scriptId);
+	V8_ARG_TO_UINT32(2, dlc);
+	V8_ARG_TO_INT(3, component);
+	V8_ARG_TO_INT(4, drawable);
+	V8_ARG_TO_INT(5, texture);
+	
+	alt::ICore::Instance().SetDlcProps(scriptId, component, drawable, texture, dlc);
+}
+
+static void ClearPedProps(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+	V8_GET_ISOLATE_CONTEXT();
+	V8_CHECK_ARGS_LEN(2);
+
+	V8_ARG_TO_INT(1, scriptId);
+	V8_ARG_TO_INT(2, component);
+
+	alt::ICore::Instance().ClearProps(scriptId, component);
+}
+
 extern V8Class v8Vector3,
 	v8Vector2,
 	v8RGBA,
@@ -817,7 +862,8 @@ extern V8Class v8Vector3,
 	v8WebSocketClient,
 	v8Checkpoint,
 	v8HttpClient,
-	v8Audio;
+	v8Audio,
+	v8LocalPlayer;
 extern V8Module altModule(
 	"alt",
 	{v8Vector3,
@@ -843,7 +889,8 @@ extern V8Module altModule(
 	 v8WebSocketClient,
 	 v8Checkpoint,
 	 v8HttpClient,
-	 v8Audio},
+	 v8Audio,
+	 v8LocalPlayer},
 	[](v8::Local<v8::Context> ctx, v8::Local<v8::Object> exports) {
 		V8::RegisterSharedMain(ctx, exports);
 
@@ -930,4 +977,8 @@ extern V8Module altModule(
 		V8Helpers::RegisterFunc(exports, "evalModule", &EvalModule);
 
 		V8Helpers::RegisterFunc(exports, "getHeadshotBase64", &GetHeadshotBase64);
+
+		V8Helpers::RegisterFunc(exports, "setPedDlcClothes", &SetPedDlcClothes);
+		V8Helpers::RegisterFunc(exports, "setPedDlcProp", &SetPedDlcProps);
+		V8Helpers::RegisterFunc(exports, "clearPedProp", &ClearPedProps);
 	});

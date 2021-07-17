@@ -17,7 +17,7 @@ static void ToString(const v8::FunctionCallbackInfo<v8::Value>& info)
 	V8_GET_ISOLATE_CONTEXT();
 
     auto vehicle = info.This();
-    V8_OBJECT_GET_INTEGER(vehicle, "id", id);
+    V8_OBJECT_GET_INT(vehicle, "id", id);
 	V8_OBJECT_GET_NUMBER(vehicle, "model", model);
 
 	std::ostringstream ss;
@@ -59,7 +59,7 @@ static void ToggleExtra(const v8::FunctionCallbackInfo<v8::Value>& info)
     V8_GET_ISOLATE_CONTEXT();
     V8_GET_THIS_BASE_OBJECT(vehicle, alt::IVehicle);
     V8_CHECK_ARGS_LEN(2);
-    V8_ARG_TO_INTEGER(1, extraID);
+    V8_ARG_TO_INT(1, extraID);
     V8_ARG_TO_BOOLEAN(2, toggle);
     vehicle->ToggleExtra(extraID, toggle);
 }
@@ -75,7 +75,7 @@ static void StreamedInGetter(v8::Local<v8::String> name, const v8::PropertyCallb
 {
     V8_GET_ISOLATE_CONTEXT_RESOURCE();
 
-    auto streamedIn = CV8ScriptRuntime::instance->GetStreamedInVehicles();
+    auto streamedIn = CV8ScriptRuntime::Instance().GetStreamedInVehicles();
     auto arr = v8::Array::New(isolate, streamedIn.size());
     int i = 0;
     for(auto kv : streamedIn)
@@ -91,7 +91,7 @@ static void StaticGetByScriptID(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     V8_GET_ISOLATE_CONTEXT_RESOURCE();
     V8_CHECK_ARGS_LEN(1);
-    V8_ARG_TO_INTEGER(1, scriptGuid);
+    V8_ARG_TO_INT(1, scriptGuid);
     V8_RETURN_BASE_OBJECT(alt::ICore::Instance().GetEntityByScriptGuid(scriptGuid).As<alt::IVehicle>());
 }
 
@@ -99,16 +99,16 @@ static void StaticGetByID(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     V8_GET_ISOLATE_CONTEXT_RESOURCE();
     V8_CHECK_ARGS_LEN(1);
-    V8_ARG_TO_INTEGER(1, id);
+    V8_ARG_TO_INT(1, id);
     V8_RETURN_BASE_OBJECT(alt::ICore::Instance().GetEntityByID(id).As<alt::IVehicle>());
 }
 
 static void IndicatorLightsGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    V8_GET_ISOLATE(info);
+    V8_GET_ISOLATE();
     V8_GET_THIS_BASE_OBJECT(vehicle, alt::IVehicle);
 
-    V8_RETURN_INTEGER(vehicle->GetLightsIndicator());
+    V8_RETURN_INT(vehicle->GetLightsIndicator());
 }
 
 static void IndicatorLightsSetter(v8::Local<v8::String>, v8::Local<v8::Value> val, const v8::PropertyCallbackInfo<void> &info)
@@ -143,7 +143,7 @@ extern V8Class v8Vehicle("Vehicle", v8Entity, [](v8::Local<v8::FunctionTemplate>
     V8::SetMethod(isolate, tpl, "toggleExtra", ToggleExtra);
     V8::SetAccessor<IVehicle, uint8_t, &IVehicle::GetLightsIndicator, &IVehicle::SetLightsIndicator>(isolate, tpl, "indicatorLights");
 
-    /* GETTERS BELOW ARE UNIMPLEMENTED
+    /*GETTERS BELOW ARE UNIMPLEMENTED
     V8::SetAccessor(isolate, tpl, "isDestroyed", &IsDestroyedGetter);
     V8::SetAccessor(isolate, tpl, "driver", &DriverGetter);
 
@@ -173,35 +173,5 @@ extern V8Class v8Vehicle("Vehicle", v8Entity, [](v8::Local<v8::FunctionTemplate>
     V8::SetAccessor(isolate, tpl, "dirtLevel", &DirtLevelGetter);
     //V8::SetAccessor(isolate, tpl, "neonActive", &IsNeonActiveGetter);
     V8::SetAccessor(isolate, tpl, "neon", &NeonGetter);
-    V8::SetAccessor(isolate, tpl, "neonColor", &NeonColorGetter);
-    V8::SetAccessor(isolate, tpl, "livery", &LiveryGetter);
-    V8::SetAccessor(isolate, tpl, "roofLivery", &RoofLiveryGetter);
-
-    // Gamestate getters
-    V8::SetAccessor(isolate, tpl, "engineOn", &EngineOnGetter);
-    V8::SetAccessor(isolate, tpl, "handbrakeActive", &HandbrakeActiveGetter);
-    V8::SetAccessor(isolate, tpl, "headlightColor", &HeadlightColorGetter);
-    V8::SetAccessor(isolate, tpl, "activeRadioStation", &RadioStationIndexGetter);
-    V8::SetAccessor(isolate, tpl, "sirenActive", &IsSirenActiveGetter);
-    V8::SetAccessor(isolate, tpl, "lockState", &LockStateGetter);
-    V8::SetAccessor(isolate, tpl, "daylightOn", &IsDaylightOnGetter);
-    V8::SetAccessor(isolate, tpl, "nightlightOn", &IsNightlightOnGetter);
-    V8::SetAccessor(isolate, tpl, "roofState", &RoofStateGetter);
-    V8::SetAccessor(isolate, tpl, "flamethrowerActive", &IsFlamethrowerActiveGetter);
-    V8::SetAccessor(isolate, tpl, "lightsMultiplier", &LightsMultiplierGetter);
-
-    // Health getters
-    V8::SetAccessor(isolate, tpl, "engineHealth", &EngineHealthGetter);
-    V8::SetAccessor(isolate, tpl, "petrolTankHealth", &PetrolTankHealthGetter);
-    V8::SetAccessor(isolate, tpl, "repairsCount", &RepairsCountGetter);
-    V8::SetAccessor(isolate, tpl, "bodyHealth", &BodyHealthGetter);
-    V8::SetAccessor(isolate, tpl, "bodyAdditionalHealth", &BodyAdditionalHealthGetter);
-
-    // Damage getters
-    V8::SetAccessor(isolate, tpl, "hasArmoredWindows", &HasArmoredWindowsGetter);
-
-    // Script getters
-    V8::SetAccessor(isolate, tpl, "manualEngineControl", &IsManualEngineControlGetter);
-    V8::SetAccessor(isolate, tpl, "handlingModified", &IsHandlingModifiedGetter);
-    */
+    V8::SetAccessor(isolate, tpl, "neonColor", &NeonColorGetter);*/
 });
