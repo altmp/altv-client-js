@@ -22,6 +22,14 @@ static void GetHeapStatistics(v8::Local<v8::String>, const v8::PropertyCallbackI
 	V8_RETURN(stats);
 }
 
+// Key = Node ID, Value = Timestamp
+// We store a map of the timestamps here, so we can quickly
+// access it when setting it while serializing the profiler node
+// todo: There is probably some nicer way to do this
+static std::unordered_map<unsigned int, int64_t> nodeMap;
+static uint32_t profilerRunningCount = 0;
+static void GetProfileNodeData(v8::Isolate* isolate, const v8::CpuProfileNode* node, v8::Local<v8::Object> result);
+
 static void StartProfiling(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     V8_GET_ISOLATE_CONTEXT();
@@ -36,17 +44,14 @@ static void StartProfiling(const v8::FunctionCallbackInfo<v8::Value>& info)
     else name = v8::String::Empty(isolate);
 
     v8::CpuProfilingStatus status = CV8ScriptRuntime::Instance().GetProfiler()->StartProfiling(name, true);
-    if(status == v8::CpuProfilingStatus::kStarted) return;
+    if(status == v8::CpuProfilingStatus::kStarted) 
+    {
+        profilerRunningCount++;
+        return;
+    }
     else if(status == v8::CpuProfilingStatus::kAlreadyStarted) V8Helpers::Throw(isolate, "A profile with the given name is already running");
     else if(status == v8::CpuProfilingStatus::kErrorTooManyProfilers) V8Helpers::Throw(isolate, "There are already too many profilers running");
 }
-
-// Key = Node ID, Value = Timestamp
-// We store a map of the timestamps here, so we can quickly
-// access it when setting it while serializing the profiler node
-// todo: There is probably some nicer way to do this
-static std::unordered_map<unsigned int, int64_t> nodeMap;
-static void GetProfileNodeData(v8::Isolate* isolate, const v8::CpuProfileNode* node, v8::Local<v8::Object> result);
 
 static void StopProfiling(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
@@ -89,12 +94,36 @@ static void StopProfiling(const v8::FunctionCallbackInfo<v8::Value>& info)
     nodeMap.clear();
 
     V8_RETURN(resultObj);
+
+    profilerRunningCount--;
+}
+
+static void SamplingIntervalSetter(v8::Local<v8::String>, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &info)
+{
+    V8_GET_ISOLATE_CONTEXT();
+    V8_TO_INT32(value, interval);
+
+    V8_CHECK(profilerRunningCount == 0, "Can't set sampling interval while profiler is running");
+
+    CV8ScriptRuntime::Instance().SetProfilerSamplingInterval(interval);
+}
+
+static void SamplingIntervalGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value> &info)
+{
+    V8_RETURN_INT(CV8ScriptRuntime::Instance().GetProfilerSamplingInterval());
+}
+
+static void ProfilesRunningGetter(v8::Local<v8::String>, const v8::PropertyCallbackInfo<v8::Value> &info)
+{
+    V8_RETURN_UINT(profilerRunningCount);
 }
 
 extern V8Class v8Profiler("Profiler", [](v8::Local<v8::FunctionTemplate> tpl) {
     v8::Isolate *isolate = v8::Isolate::GetCurrent();
 
     V8::SetStaticAccessor(isolate, tpl, "heapStats", GetHeapStatistics);
+    V8::SetStaticAccessor(isolate, tpl, "samplingInterval", SamplingIntervalGetter, SamplingIntervalSetter);
+    V8::SetStaticAccessor(isolate, tpl, "profilesRunning", ProfilesRunningGetter);
 
     V8::SetStaticMethod(isolate, tpl, "startProfiling", StartProfiling);
     V8::SetStaticMethod(isolate, tpl, "stopProfiling", StopProfiling);

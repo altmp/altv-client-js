@@ -25,6 +25,7 @@ class CV8ScriptRuntime : public alt::IScriptRuntime
 	std::unique_ptr<v8_inspector::V8Inspector> inspector;
 	std::unique_ptr<v8_inspector::V8InspectorSession> inspectorSession;
 	v8::CpuProfiler* profiler;
+	uint32_t profilerSamplingInterval = 100;
 
 	std::unordered_map<uint16_t, alt::Ref<alt::IPlayer>> streamedInPlayers;
 	std::unordered_map<uint16_t, alt::Ref<alt::IVehicle>> streamedInVehicles;
@@ -44,6 +45,12 @@ public:
 	v8_inspector::V8Inspector *GetInspector() const { return inspector.get(); }
 
 	v8::CpuProfiler* GetProfiler() { return profiler; }
+	uint32_t GetProfilerSamplingInterval() { return profilerSamplingInterval; }
+	void SetProfilerSamplingInterval(uint32_t interval)
+	{
+		profilerSamplingInterval = interval;
+		profiler->SetSamplingInterval(interval);
+	}
 
 	alt::IResource::Impl *CreateImpl(alt::IResource *resource) override
 	{

@@ -156,8 +156,7 @@ CV8ScriptRuntime::CV8ScriptRuntime()
 
 	profiler = v8::CpuProfiler::New(isolate);
 	profiler->SetUsePreciseSampling(true);
-	// todo: make this configurable
-	profiler->SetSamplingInterval(100);
+	profiler->SetSamplingInterval(profilerSamplingInterval);
 	v8::CpuProfiler::UseDetailedSourcePositionsForProfiling(isolate);
 
 	{
