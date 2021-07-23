@@ -152,13 +152,19 @@ static void GetProfileNodeData(v8::Isolate* isolate, const v8::CpuProfileNode* n
     // Children
     {
         int childrenCount = node->GetChildrenCount();
-        v8::Local<v8::Array> children = v8::Array::New(isolate, childrenCount);
-        for(int i = 0; i < childrenCount; i++)
+        v8::Local<v8::Value> children;
+        if(childrenCount != 0) 
         {
-            V8_NEW_OBJECT(child);
-            GetProfileNodeData(isolate, node->GetChild(i), child);
-            children->Set(ctx, i, child);
+            children = v8::Array::New(isolate, childrenCount);
+            for(int i = 0; i < childrenCount; i++)
+            {
+                V8_NEW_OBJECT(child);
+                GetProfileNodeData(isolate, node->GetChild(i), child);
+                children.As<v8::Array>()->Set(ctx, i, child);
+            }
         }
+        else children = v8::Null(isolate);
+        
         result->Set(ctx, V8_NEW_STRING("children"), children);
     }
 
