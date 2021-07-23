@@ -171,16 +171,18 @@ static void GetProfileNodeData(v8::Isolate* isolate, const v8::CpuProfileNode* n
     // Line ticks
     {
         std::vector<v8::CpuProfileNode::LineTick> ticks(node->GetHitLineCount());
+        auto ticksSize = ticks.size();
         v8::Local<v8::Value> val;
-        if(node->GetLineTicks(&ticks[0], ticks.size()))
+        if(node->GetLineTicks(&ticks[0], ticksSize))
         {
-            val = v8::Array::New(isolate, ticks.size());
-            for(auto& tick : ticks)
+            val = v8::Array::New(isolate, ticksSize);
+            for(size_t i = 0; i < ticksSize; i++)
             {
+                auto tick = ticks[i];
                 V8_NEW_OBJECT(tickObj);
                 tickObj->Set(ctx, V8_NEW_STRING("line"), v8::Integer::New(isolate, tick.line));
                 tickObj->Set(ctx, V8_NEW_STRING("hitCount"), v8::Integer::NewFromUnsigned(isolate, tick.hit_count));
-                val.As<v8::Array>()->Set(ctx, val.As<v8::Array>()->Length(), tickObj);
+                val.As<v8::Array>()->Set(ctx, i, tickObj);
             }
         }
         else val = v8::Null(isolate);
