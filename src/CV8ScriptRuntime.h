@@ -10,6 +10,8 @@
 
 #include "CV8Resource.h"
 
+#include "v8-profiler.h"
+
 class CV8ScriptRuntime : public alt::IScriptRuntime
 {
 	static constexpr char inspectorViewStr[] = "alt:V Multiplayer";
@@ -22,6 +24,7 @@ class CV8ScriptRuntime : public alt::IScriptRuntime
 	std::unique_ptr<v8_inspector::V8Inspector::Channel> inspectorChannel;
 	std::unique_ptr<v8_inspector::V8Inspector> inspector;
 	std::unique_ptr<v8_inspector::V8InspectorSession> inspectorSession;
+	v8::CpuProfiler* profiler;
 
 	std::unordered_map<uint16_t, alt::Ref<alt::IPlayer>> streamedInPlayers;
 	std::unordered_map<uint16_t, alt::Ref<alt::IVehicle>> streamedInVehicles;
@@ -39,6 +42,8 @@ public:
 	v8::Isolate *GetIsolate() const { return isolate; }
 
 	v8_inspector::V8Inspector *GetInspector() const { return inspector.get(); }
+
+	v8::CpuProfiler* GetProfiler() { return profiler; }
 
 	alt::IResource::Impl *CreateImpl(alt::IResource *resource) override
 	{
