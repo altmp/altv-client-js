@@ -196,11 +196,11 @@ static void SetExtraHeader(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
 	V8_GET_ISOLATE_CONTEXT();
 
+	V8_GET_THIS_BASE_OBJECT(view, alt::IWebView);
+
 	V8_CHECK_ARGS_LEN(2);
 	V8_ARG_TO_STRING(1, name);
 	V8_ARG_TO_STRING(2, value);
-
-	V8_GET_THIS_BASE_OBJECT(view, alt::IWebView);
 
 	view->SetExtraHeader(name, value);
 }
